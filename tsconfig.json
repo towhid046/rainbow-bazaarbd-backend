@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2020", // Added to support modern JavaScript features
+    "module": "NodeNext", // Added for modern module system
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "moduleResolution": "NodeNext", // Updated to match module
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "skipLibCheck": true, // Added to skip checking node_modules
+    "forceConsistentCasingInFileNames": true, // Added for better file handling
+    "paths": {
+      "@src/*": [
+        "./src/*"
+      ],
+      "@utils/*": [
+        "./src/utils/*"
+      ],
+      "@components/*": [
+        "./src/components/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ], // Added to explicitly include source files
+  "exclude": [
+    "node_modules"
+  ] // Added to explicitly exclude node_modules
+}

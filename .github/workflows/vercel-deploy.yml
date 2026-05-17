@@ -41,3 +41,4 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_nRUYRRPN7hwnzeXYg23tTkIT
           VERCEL_PROJECT_ID: prj_S0iivGp7EpmDsckN11k6YjLoimkW
+          

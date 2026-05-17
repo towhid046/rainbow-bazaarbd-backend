@@ -29,7 +29,7 @@ app.use(cors({
     origin: [
         "http://localhost:3000",
         "http://192.168.0.105:5173",
-        "https://rainbow-baazaarbd.vercel.app",
+        "https://rainbow-bazaarbd.vercel.app",
     ],
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     allowedHeaders: "Content-Type, Authorization",

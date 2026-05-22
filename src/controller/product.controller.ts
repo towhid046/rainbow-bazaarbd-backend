@@ -398,9 +398,17 @@ export const getAllProductsHandler = async (
     const pageNumber = Number(page);
     const limitNumber = Number(limit);
 
-    const query: any = {
-      isActive: true,
-    };
+    const query: any = {};
+    if (req.query.isActive === "true") {
+      query.isActive = true;
+    } else if (req.query.isActive === "false") {
+      query.isActive = false;
+    } else if (req.query.isActive === "all") {
+      // Do not filter by isActive, show all products
+    } else {
+      // Default to active only for shop routes
+      query.isActive = true;
+    }
 
     /**
      * SEARCH

@@ -52,7 +52,7 @@ productRouter.post(
 
 productRouter.put(
   "/:id",
-  verifyAdmin,
+  // verifyAdmin,
   updateProductHandler
 );
 

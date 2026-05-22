@@ -8,15 +8,9 @@ dotenv.config();
 import { connectDB } from "./config/connectDB";
 const PORT = process.env.PORT || 5000;
 
-// import bookRouter from "./routes/book.router";
 import productRouter from "./routes/product.router";
-import bookOrderRouter from './routes/bookOrder.router';
-import customerRouter from './routes/customer.route';
-import photocopyOrderRouter from './routes/photocopyOrder.router';
-import preOrderRouter from './routes/preOrder.router';
-import sellBookRouter from './routes/sellYourBook.router';
-import serviceRouter from "./routes/service.router";
 import userRoutes from "./routes/user.router";
+import categoryRouter from './routes/category.router';
 
 const app = express();
 
@@ -40,14 +34,8 @@ app.use(cors({
 
 // Routes
 app.use("/api/v1/users", userRoutes);
-// app.use("/api/v1/books", bookRouter);
+app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
-// app.use("/api/v1/services", serviceRouter);
-// app.use("/api/v1/checkout-book", bookOrderRouter);
-// app.use("/api/v1/order-sheet", photocopyOrderRouter);
-// app.use("/api/v1/customers", customerRouter);
-// app.use("/api/v1/sell-books", sellBookRouter);
-// app.use("/api/v1/pre-orders", preOrderRouter);
 
 // Connect to MongoDB
 connectDB()

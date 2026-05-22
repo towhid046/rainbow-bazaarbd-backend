@@ -46,7 +46,7 @@ productRouter.get(
  */
 productRouter.post(
   "/",
-  verifyAdmin,
+  // verifyAdmin,
   createProductHandler
 );
 

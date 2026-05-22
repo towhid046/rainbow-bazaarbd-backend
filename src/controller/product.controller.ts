@@ -1,8 +1,7 @@
 // import { Request, Response } from "express";
 // import { Product } from "../models/Product.model";
 // import { productZodSchema } from "../schemas/Product.schema";
-
-
+// import { Category } from "../models/Category.model"; // Ensure you have this imported!
 
 // /**
 //  * GET ALL PRODUCTS
@@ -10,7 +9,7 @@
 // export const getAllProductsHandler = async (
 //   req: Request,
 //   res: Response
-// ) => {
+// ): Promise<void> => {
 //   try {
 //     const {
 //       page = "1",
@@ -33,14 +32,11 @@
 //      * SEARCH
 //      */
 //     if (search) {
-//       query.name = {
-//         $regex: search,
-//         $options: "i",
-//       };
-//       query.description = {
-//         $regex: search,
-//         $options: "i",
-//       };
+//       // Use $or to search in multiple fields
+//       query.$or = [
+//         { name: { $regex: search, $options: "i" } },
+//         { description: { $regex: search, $options: "i" } }
+//       ];
 //     }
 
 //     /**
@@ -90,6 +86,7 @@
 //     const total = await Product.countDocuments(query);
 
 //     const products = await Product.find(query)
+//       .populate("category", "_id name") // <-- Populates the category data
 //       .sort(sortOption)
 //       .skip((pageNumber - 1) * limitNumber)
 //       .limit(limitNumber);
@@ -122,16 +119,15 @@
 // export const getSingleProductHandler = async (
 //   req: Request,
 //   res: Response
-// ) => {
+// ): Promise<void> => {
 //   try {
-//     const product = await Product.findById(req.params.id);
+//     const product = await Product.findById(req.params.id).populate("category", "_id name"); // <-- Populates the category data
 
 //     if (!product) {
 //       res.status(404).json({
 //         success: false,
 //         message: "Product not found",
 //       });
-
 //       return;
 //     }
 
@@ -155,7 +151,7 @@
 // export const createProductHandler = async (
 //   req: Request,
 //   res: Response
-// ) => {
+// ): Promise<void> => {
 //   try {
 //     const validatedData = productZodSchema.parse(req.body);
 
@@ -168,11 +164,17 @@
 //         success: false,
 //         message: "Slug already exists",
 //       });
-
 //       return;
 //     }
 
 //     const product = await Product.create(validatedData);
+
+//     // <-- INCREMENT CATEGORY ITEMS COUNT -->
+//     if (validatedData.categoryId) {
+//       await Category.findByIdAndUpdate(validatedData.categoryId, {
+//         $inc: { items: 1 }
+//       });
+//     }
 
 //     res.status(201).json({
 //       success: true,
@@ -195,31 +197,43 @@
 // export const updateProductHandler = async (
 //   req: Request,
 //   res: Response
-// ) => {
+// ): Promise<void> => {
 //   try {
 //     const validatedData = productZodSchema.partial().parse(req.body);
 
-//     const product = await Product.findByIdAndUpdate(
-//       req.params.id,
-//       validatedData,
-//       {
-//         new: true,
-//       }
-//     );
+//     // Find the old product first to check if the category changed
+//     const oldProduct = await Product.findById(req.params.id);
 
-//     if (!product) {
+//     if (!oldProduct) {
 //       res.status(404).json({
 //         success: false,
 //         message: "Product not found",
 //       });
-
 //       return;
+//     }
+
+//     const updatedProduct = await Product.findByIdAndUpdate(
+//       req.params.id,
+//       validatedData,
+//       { new: true }
+//     );
+
+//     // <-- HANDLE CATEGORY COUNT CHANGES ON UPDATE -->
+//     // If the category was updated to a new one, adjust the item counts for both categories
+//     if (
+//       validatedData.categoryId && 
+//       oldProduct.categoryId?.toString() !== validatedData.categoryId
+//     ) {
+//       // Decrease old category count
+//       await Category.findByIdAndUpdate(oldProduct.categoryId, { $inc: { items: -1 } });
+//       // Increase new category count
+//       await Category.findByIdAndUpdate(validatedData.categoryId, { $inc: { items: 1 } });
 //     }
 
 //     res.status(200).json({
 //       success: true,
 //       message: "Product updated successfully",
-//       data: product,
+//       data: updatedProduct,
 //     });
 //   } catch (error: any) {
 //     res.status(500).json({
@@ -237,7 +251,7 @@
 // export const deleteProductHandler = async (
 //   req: Request,
 //   res: Response
-// ) => {
+// ): Promise<void> => {
 //   try {
 //     const product = await Product.findByIdAndDelete(req.params.id);
 
@@ -246,8 +260,14 @@
 //         success: false,
 //         message: "Product not found",
 //       });
-
 //       return;
+//     }
+
+//     // <-- DECREMENT CATEGORY ITEMS COUNT -->
+//     if (product.categoryId) {
+//       await Category.findByIdAndUpdate(product.categoryId, {
+//         $inc: { items: -1 }
+//       });
 //     }
 
 //     res.status(200).json({
@@ -270,7 +290,7 @@
 // export const getCartSummaryHandler = async (
 //   req: Request,
 //   res: Response
-// ) => {
+// ): Promise<void> => {
 //   try {
 //     const items = req.body;
 
@@ -279,22 +299,17 @@
 //         success: false,
 //         message: "Invalid cart items",
 //       });
-
 //       return;
 //     }
 
 //     const ids = items.map((item) => item.id);
 
 //     const products = await Product.find({
-//       _id: {
-//         $in: ids,
-//       },
+//       _id: { $in: ids },
 //     });
 
 //     const summary = items.map((item) => {
-//       const product = products.find(
-//         (p) => p._id.toString() === item.id
-//       );
+//       const product = products.find((p) => p._id.toString() === item.id);
 
 //       if (!product) return null;
 
@@ -339,7 +354,7 @@
 // export const getProductCountHandler = async (
 //   req: Request,
 //   res: Response
-// ) => {
+// ): Promise<void> => {
 //   try {
 //     const count = await Product.countDocuments();
 
@@ -360,7 +375,7 @@
 import { Request, Response } from "express";
 import { Product } from "../models/Product.model";
 import { productZodSchema } from "../schemas/Product.schema";
-import { Category } from "../models/Category.model"; // Ensure you have this imported!
+import { Category } from "../models/Category.model";
 
 /**
  * GET ALL PRODUCTS
@@ -391,7 +406,6 @@ export const getAllProductsHandler = async (
      * SEARCH
      */
     if (search) {
-      // Use $or to search in multiple fields
       query.$or = [
         { name: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } }
@@ -399,10 +413,10 @@ export const getAllProductsHandler = async (
     }
 
     /**
-     * CATEGORY
+     * CATEGORY FILTER
      */
     if (category) {
-      query.categoryId = category;
+      query.category = category; // Changed query target to category
     }
 
     /**
@@ -445,7 +459,7 @@ export const getAllProductsHandler = async (
     const total = await Product.countDocuments(query);
 
     const products = await Product.find(query)
-      .populate("categoryId")
+      .populate("category", "_id name") // Automatically resolves to category: { _id, name }
       .sort(sortOption)
       .skip((pageNumber - 1) * limitNumber)
       .limit(limitNumber);
@@ -470,8 +484,6 @@ export const getAllProductsHandler = async (
   }
 };
 
-
-
 /**
  * GET SINGLE PRODUCT
  */
@@ -480,7 +492,7 @@ export const getSingleProductHandler = async (
   res: Response
 ): Promise<void> => {
   try {
-    const product = await Product.findById(req.params.id).populate("categoryId"); // <-- Populates the category data
+    const product = await Product.findById(req.params.id).populate("category", "_id name");
 
     if (!product) {
       res.status(404).json({
@@ -501,8 +513,6 @@ export const getSingleProductHandler = async (
     });
   }
 };
-
-
 
 /**
  * CREATE PRODUCT
@@ -528,9 +538,9 @@ export const createProductHandler = async (
 
     const product = await Product.create(validatedData);
 
-    // <-- INCREMENT CATEGORY ITEMS COUNT -->
-    if (validatedData.categoryId) {
-      await Category.findByIdAndUpdate(validatedData.categoryId, {
+    // Increments counter using validatedData.category
+    if (validatedData.category) {
+      await Category.findByIdAndUpdate(validatedData.category, {
         $inc: { items: 1 }
       });
     }
@@ -548,8 +558,6 @@ export const createProductHandler = async (
   }
 };
 
-
-
 /**
  * UPDATE PRODUCT
  */
@@ -560,7 +568,6 @@ export const updateProductHandler = async (
   try {
     const validatedData = productZodSchema.partial().parse(req.body);
 
-    // Find the old product first to check if the category changed
     const oldProduct = await Product.findById(req.params.id);
 
     if (!oldProduct) {
@@ -577,16 +584,15 @@ export const updateProductHandler = async (
       { new: true }
     );
 
-    // <-- HANDLE CATEGORY COUNT CHANGES ON UPDATE -->
-    // If the category was updated to a new one, adjust the item counts for both categories
+    // Handle count adjustments matching the updated field name
     if (
-      validatedData.categoryId && 
-      oldProduct.categoryId?.toString() !== validatedData.categoryId
+      validatedData.category && 
+      oldProduct.category?.toString() !== validatedData.category
     ) {
       // Decrease old category count
-      await Category.findByIdAndUpdate(oldProduct.categoryId, { $inc: { items: -1 } });
+      await Category.findByIdAndUpdate(oldProduct.category, { $inc: { items: -1 } });
       // Increase new category count
-      await Category.findByIdAndUpdate(validatedData.categoryId, { $inc: { items: 1 } });
+      await Category.findByIdAndUpdate(validatedData.category, { $inc: { items: 1 } });
     }
 
     res.status(200).json({
@@ -601,8 +607,6 @@ export const updateProductHandler = async (
     });
   }
 };
-
-
 
 /**
  * DELETE PRODUCT
@@ -622,9 +626,9 @@ export const deleteProductHandler = async (
       return;
     }
 
-    // <-- DECREMENT CATEGORY ITEMS COUNT -->
-    if (product.categoryId) {
-      await Category.findByIdAndUpdate(product.categoryId, {
+    // Decrement using product.category
+    if (product.category) {
+      await Category.findByIdAndUpdate(product.category, {
         $inc: { items: -1 }
       });
     }
@@ -640,8 +644,6 @@ export const deleteProductHandler = async (
     });
   }
 };
-
-
 
 /**
  * CART SUMMARY
@@ -704,8 +706,6 @@ export const getCartSummaryHandler = async (
     });
   }
 };
-
-
 
 /**
  * PRODUCT COUNT

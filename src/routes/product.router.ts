@@ -4,8 +4,6 @@ import {
   createProductHandler,
   deleteProductHandler,
   getAllProductsHandler,
-  getCartSummaryHandler,
-  getProductCountHandler,
   getSingleProductHandler,
   updateProductHandler,
 } from "../controller/product.controller";
@@ -19,15 +17,7 @@ const productRouter = express.Router();
 /**
  * PUBLIC ROUTES
  */
-productRouter.post(
-  "/cart-summary",
-  getCartSummaryHandler
-);
 
-productRouter.get(
-  "/count",
-  getProductCountHandler
-);
 
 productRouter.get(
   "/",
@@ -58,7 +48,7 @@ productRouter.put(
 
 productRouter.delete(
   "/:id",
-  verifyAdmin,
+  // verifyAdmin,
   deleteProductHandler
 );
 

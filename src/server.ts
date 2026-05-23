@@ -11,6 +11,7 @@ const PORT = process.env.PORT || 5000;
 import productRouter from "./routes/product.router";
 import userRoutes from "./routes/user.router";
 import categoryRouter from './routes/category.router';
+import orderRouter from './routes/order.router';
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use(cors({
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
+app.use("/api/v1/orders", orderRouter);
 
 // Connect to MongoDB
 connectDB()

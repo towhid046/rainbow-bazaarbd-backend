@@ -1,0 +1,2309 @@
+# 📁 Combined Project Source (For LLM Use)
+Generated: 2026-05-23T13:46:07.833Z
+
+=========================================
+📂 PROJECT FOLDER STRUCTURE
+=========================================
+
+├── .DS_Store
+├── .env
+├── .env.local
+├── .vercel
+│   ├── README.txt
+│   └── project.json
+├── package-lock.json
+├── package.json
+├── src
+│   ├── .DS_Store
+│   ├── config
+│   │   ├── backblazeB2.ts
+│   │   ├── cloudinary.ts
+│   │   └── connectDB.ts
+│   ├── controller
+│   │   ├── category.controller.ts
+│   │   ├── order.controller.ts
+│   │   ├── product.controller.ts
+│   │   └── user.controller.ts
+│   ├── middleware
+│   │   ├── hashPassword.ts
+│   │   └── verifyAdmin.ts
+│   ├── models
+│   │   ├── Category.model.ts
+│   │   ├── Order.model.ts
+│   │   ├── Product.model.ts
+│   │   └── User.model.ts
+│   ├── routes
+│   │   ├── .DS_Store
+│   │   ├── category.router.ts
+│   │   ├── order.router.ts
+│   │   ├── product.router.ts
+│   │   └── user.router.ts
+│   ├── schemas
+│   │   ├── Category.schema.ts
+│   │   ├── Order.schema.ts
+│   │   ├── Product.schema.ts
+│   │   └── User.schema.ts
+│   ├── server.ts
+│   └── utils
+│       ├── multerUpload.ts
+│       ├── setCookie.ts
+│       └── slugBuilder.ts
+├── tools
+│   ├── .DS_Store
+│   ├── combine-files.js
+│   ├── combine-selected-modules.js
+│   ├── output-rainbow-bazaar-bd-backend-combine-src-module.txt
+│   └── rainbow-bazaarbd-backend.txt
+├── tsconfig.json
+├── uploads
+└── vercel.json
+
+
+=========================================
+📦 SOURCE FILES
+=========================================
+
+
+============================================================
+===== FILE START: .vercel/project.json
+Type: Source File
+Size: 0.13 KB
+============================================================
+
+{"projectId":"prj_S0iivGp7EpmDsckN11k6YjLoimkW","orgId":"team_nRUYRRPN7hwnzeXYg23tTkIT","projectName":"rainbow-bazaarbd-backend"}
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: package.json
+Type: Source File
+Size: 1.10 KB
+============================================================
+
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon --ext ts --exec ts-node src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.tsx"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "bcrypt": "^5.1.1",
+    "cloudinary": "^1.41.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.10.0",
+    "multer": "^1.4.5-lts.2",
+    "nodemon": "^3.1.9",
+    "pdf-lib": "^1.17.1",
+    "streamifier": "^0.1.1",
+    "uuid": "^11.1.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.8",
+    "@types/mongoose": "^5.11.96",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.13.1",
+    "@types/streamifier": "^0.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/config/backblazeB2.ts
+Type: Config File
+Size: 0.50 KB
+============================================================
+
+// import B2 from "backblaze-b2";
+
+// const b2 = new B2({
+//   applicationKeyId: process.env.B2_KEY_ID!,
+//   applicationKey: process.env.B2_APP_KEY!, 
+// });
+
+// // Initialize and authorize
+// let authorized = false;
+
+// export const initializeB2 = async () => {
+//   if (!authorized) {
+//     await b2.authorize();
+//     authorized = true;
+//   }
+//   return b2;
+// };
+
+// export const bucketName = process.env.B2_BUCKET_NAME!;
+// export const bucketId = process.env.B2_BUCKET_ID!; // Get this from B2 dashboard
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/config/cloudinary.ts
+Type: Config File
+Size: 0.31 KB
+============================================================
+
+// config/cloudinary.ts
+import { v2 as cloudinary } from 'cloudinary';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
+  api_key:    process.env.CLOUDINARY_API_KEY!,
+  api_secret: process.env.CLOUDINARY_API_SECRET!,
+});
+
+export default cloudinary;
+
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/config/connectDB.ts
+Type: Config File
+Size: 0.30 KB
+============================================================
+
+import mongoose from "mongoose";
+
+export const connectDB = async () => {
+    try {
+        await mongoose.connect(process.env.MONGO_URI as string);
+        console.log("Connected to MongoDB");
+    } catch (error) {
+        console.error("MongoDB connection error:", error);
+        process.exit(1)
+    }
+};
+
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/controller/category.controller.ts
+Type: Source File
+Size: 2.31 KB
+============================================================
+
+import { Request, Response } from "express";
+import { Category } from "../models/Category.model";
+import { categoryZodSchema } from "../schemas/Category.schema";
+import { slugBuilder } from "../utils/slugBuilder";
+
+// CREATE
+export const createCategoryHandler = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const validatedData = categoryZodSchema.parse(req.body);
+
+    const slug = slugBuilder(validatedData?.name)
+    
+    const existingCategory = await Category.findOne({ slug });
+    if (existingCategory) {
+      res.status(400).json({ success: false, message: "Category slug already exists" });
+      return;
+    }
+
+    const category = await Category.create({...validatedData, slug});
+    res.status(201).json({ success: true, data: category });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// READ ALL
+export const getAllCategoriesHandler = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const categories = await Category.find();
+    res.status(200).json({ success: true, data: categories });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// UPDATE
+export const updateCategoryHandler = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const validatedData = categoryZodSchema.partial().parse(req.body);
+    let slug;
+    if(validatedData?.name){
+      slug = slugBuilder(validatedData?.name)
+    }
+    
+    const category = await Category.findByIdAndUpdate(req.params.id, {...validatedData, slug}, { new: true });
+    
+    if (!category) {
+      res.status(404).json({ success: false, message: "Category not found" });
+      return;
+    }
+    res.status(200).json({ success: true, data: category });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// DELETE
+export const deleteCategoryHandler = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const category = await Category.findByIdAndDelete(req.params.id);
+    if (!category) {
+      res.status(404).json({ success: false, message: "Category not found" });
+      return;
+    }
+    res.status(200).json({ success: true, message: "Category deleted" });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/controller/order.controller.ts
+Type: Source File
+Size: 6.23 KB
+============================================================
+
+// src/controller/order.controller.ts
+
+import { Request, Response } from "express";
+import mongoose from "mongoose";
+
+import { Order } from "../models/Order.model";
+import { Product } from "../models/Product.model";
+
+import {
+  orderStatusEnum,
+  orderZodSchema,
+} from "../schemas/Order.schema";
+
+// CREATE ORDER
+export const createOrderHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const validatedData = orderZodSchema.parse(req.body);
+
+    let calculatedTotal = 0;
+
+    const orderItems = [];
+
+    // PROCESS EACH ITEM
+    for (const item of validatedData.items) {
+      const product = await Product.findById(
+        item.productId
+      ).session(session);
+
+      if (!product) {
+        throw new Error("Product not found");
+      }
+
+      // CHECK STOCK
+      if (product.stock < item.quantity) {
+        throw new Error(
+          `${product.name} is out of stock`
+        );
+      }
+
+      // REDUCE STOCK
+      product.stock -= item.quantity;
+
+      await product.save({ session });
+
+      // CALCULATE TOTAL
+      calculatedTotal += product.price * item.quantity;
+
+      // SAVE PRODUCT SNAPSHOT
+      orderItems.push({
+        productId: product._id,
+        name: product.name,
+        quantity: item.quantity,
+        price: product.price,
+      });
+    }
+
+    // CREATE ORDER
+    const order = await Order.create(
+      [
+        {
+          name: validatedData.name,
+          phone: validatedData.phone,
+          zila: validatedData.zila,
+          thana: validatedData.thana,
+          fullAddress: validatedData.fullAddress,
+          note: validatedData.note,
+
+          paymentMethod:
+            validatedData.paymentMethod,
+
+          status: validatedData.status,
+
+          items: orderItems,
+
+          total: calculatedTotal,
+        },
+      ],
+      { session }
+    );
+
+    await session.commitTransaction();
+
+    res.status(201).json({
+      success: true,
+      message: "Order placed successfully",
+      data: order[0],
+    });
+  } catch (error: any) {
+    await session.abortTransaction();
+
+    res.status(400).json({
+      success: false,
+      message:
+        error?.errors?.[0]?.message ||
+        error.message,
+    });
+  } finally {
+    session.endSession();
+  }
+};
+
+// GET ALL ORDERS
+export const getAllOrdersHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const {
+      page = "1",
+      limit = "10",
+      status,
+      search,
+    } = req.query;
+
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    const query: any = {};
+
+    // FILTER BY STATUS
+    if (status) {
+      query.status = status;
+    }
+
+    // SEARCH
+    if (search && typeof search === "string") {
+      const searchQuery: any[] = [
+        {
+          name: {
+            $regex: search,
+            $options: "i",
+          },
+        },
+        {
+          phone: {
+            $regex: search,
+            $options: "i",
+          },
+        },
+      ];
+
+      if (mongoose.Types.ObjectId.isValid(search)) {
+        searchQuery.push({
+          _id: new mongoose.Types.ObjectId(search),
+        });
+      }
+
+      query.$or = searchQuery;
+    }
+
+    const total = await Order.countDocuments(query);
+
+    const orders = await Order.find(query)
+      .sort({ createdAt: -1 })
+      .skip((pageNumber - 1) * limitNumber)
+      .limit(limitNumber);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        orders,
+        pagination: {
+          total,
+          page: pageNumber,
+          limit: limitNumber,
+          totalPages: Math.ceil(
+            total / limitNumber
+          ),
+        },
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// GET SINGLE ORDER
+export const getOrderHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const order = await Order.findById(
+      req.params.id
+    );
+
+    if (!order) {
+      res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: order,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// UPDATE ORDER STATUS
+export const updateOrderStatusHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const parsedStatus = orderStatusEnum.parse(
+      req.body.status
+    );
+
+    const order = await Order.findById(
+      req.params.id
+    ).session(session);
+
+    if (!order) {
+      await session.abortTransaction();
+
+      res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+
+      return;
+    }
+
+    // RESTORE STOCK WHEN CANCELED
+    if (
+      parsedStatus === "Canceled" &&
+      order.status !== "Canceled"
+    ) {
+      for (const item of order.items) {
+        const product = await Product.findById(
+          item.productId
+        ).session(session);
+
+        if (product) {
+          product.stock += item.quantity;
+
+          await product.save({ session });
+        }
+      }
+    }
+
+    order.status = parsedStatus;
+
+    await order.save({ session });
+
+    await session.commitTransaction();
+
+    res.status(200).json({
+      success: true,
+      message:
+        "Order status updated successfully",
+      data: order,
+    });
+  } catch (error: any) {
+    await session.abortTransaction();
+
+    res.status(400).json({
+      success: false,
+      message:
+        error?.errors?.[0]?.message ||
+        error.message,
+    });
+  } finally {
+    session.endSession();
+  }
+};
+
+// DELETE ORDER
+export const deleteOrderHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const order = await Order.findByIdAndDelete(
+      req.params.id
+    );
+
+    if (!order) {
+      res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Order deleted successfully",
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/controller/product.controller.ts
+Type: Source File
+Size: 5.83 KB
+============================================================
+
+import { Request, Response } from "express";
+import { Product } from "../models/Product.model";
+import { productZodSchema } from "../schemas/Product.schema";
+import { Category } from "../models/Category.model";
+
+/**
+ * GET ALL PRODUCTS
+ */
+export const getAllProductsHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const {
+      page = "1",
+      limit = "10",
+      search,
+      category,
+      flash,
+      featured,
+      sort,
+    } = req.query;
+
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    const query: any = {};
+    if (req.query.isActive === "true") {
+      query.isActive = true;
+    } else if (req.query.isActive === "false") {
+      query.isActive = false;
+    } else if (req.query.isActive === "all") {
+      // Do not filter by isActive, show all products
+    } else {
+      // Default to active only for shop routes
+      query.isActive = true;
+    }
+
+    /**
+     * SEARCH
+     */
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    /**
+     * CATEGORY FILTER
+     */
+    if (category) {
+      query.category = category; // Changed query target to category
+    }
+
+    /**
+     * FLASH SALE
+     */
+    if (flash === "true") {
+      query.isFlash = true;
+    }
+
+    /**
+     * FEATURED
+     */
+    if (featured === "true") {
+      query.isFeatured = true;
+    }
+
+    /**
+     * SORTING
+     */
+    let sortOption: any = {
+      createdAt: -1,
+    };
+
+    if (sort === "price-asc") {
+      sortOption.price = 1;
+    }
+
+    if (sort === "price-desc") {
+      sortOption.price = -1;
+    }
+
+    if (sort === "best-selling") {
+      sortOption.soldCount = -1;
+    }
+
+    if (sort === "top-rated") {
+      sortOption.rating = -1;
+    }
+
+    const total = await Product.countDocuments(query);
+
+    const products = await Product.find(query)
+      .populate("category", "_id name") // Automatically resolves to category: { _id, name }
+      .sort(sortOption)
+      .skip((pageNumber - 1) * limitNumber)
+      .limit(limitNumber);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        products,
+        pagination: {
+          total,
+          page: pageNumber,
+          limit: limitNumber,
+          totalPages: Math.ceil(total / limitNumber),
+        },
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * GET SINGLE PRODUCT
+ */
+export const getSingleProductHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const product = await Product.findById(req.params.id).populate("category", "_id name");
+
+    if (!product) {
+      res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: product,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * CREATE PRODUCT
+ */
+export const createProductHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const validatedData = productZodSchema.parse(req.body);
+
+    const existingSlug = await Product.findOne({
+      slug: validatedData.slug,
+    });
+
+    if (existingSlug) {
+      res.status(400).json({
+        success: false,
+        message: "Slug already exists",
+      });
+      return;
+    }
+
+    const product = await Product.create(validatedData);
+
+    // Increments counter using validatedData.category
+    if (validatedData.category) {
+      await Category.findByIdAndUpdate(validatedData.category, {
+        $inc: { items: 1 }
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Product created successfully",
+      data: product,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * UPDATE PRODUCT
+ */
+export const updateProductHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const validatedData = productZodSchema.partial().parse(req.body);
+
+    const oldProduct = await Product.findById(req.params.id);
+
+    if (!oldProduct) {
+      res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+      return;
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      req.params.id,
+      validatedData,
+      { new: true }
+    );
+
+    // Handle count adjustments matching the updated field name
+    if (
+      validatedData.category && 
+      oldProduct.category?.toString() !== validatedData.category
+    ) {
+      // Decrease old category count
+      await Category.findByIdAndUpdate(oldProduct.category, { $inc: { items: -1 } });
+      // Increase new category count
+      await Category.findByIdAndUpdate(validatedData.category, { $inc: { items: 1 } });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Product updated successfully",
+      data: updatedProduct,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * DELETE PRODUCT
+ */
+export const deleteProductHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+
+    if (!product) {
+      res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+      return;
+    }
+
+    // Decrement using product.category
+    if (product.category) {
+      await Category.findByIdAndUpdate(product.category, {
+        $inc: { items: -1 }
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Product deleted successfully",
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/controller/user.controller.ts
+Type: Source File
+Size: 2.29 KB
+============================================================
+
+// dependencies
+import {Request, Response} from 'express';
+import { z } from 'zod';
+import { User } from '../models/User.model';
+import { zodUserSchema } from '../schemas/User.schema';
+import setCookie from '../utils/setCookie';
+
+export const registerUserHandler = async (req: Request, res: Response) => {
+    try {
+        // ✅ Validate user input with Zod using parse()
+        const validUserData = zodUserSchema.parse({ ...req.body, role: "member" });
+
+        // ✅ Extract validated data
+        const { name, email, password, role } = validUserData;
+
+        // ✅ Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            res.status(400).json({ message: 'User already exists!' });
+            return;
+        }
+
+        // ✅ Create new user
+         await User.create({ name, email, password, role });
+
+        // ✅ Set cookie
+        await setCookie(req,res)
+
+        // ✅ Send response
+        res.status(200).json({ message: 'User registered successfully!' });
+    } catch (error) {
+        console.error('Error creating user:', error);
+        
+        // Handle Zod validation errors
+        if (error instanceof z.ZodError) {
+            res.status(400).json({ errors: error.errors });
+            return;
+        }
+
+        // Handle other errors
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+export const getUserHandler = async (req: Request, res: Response) => {
+    try {
+        const users = await User.find().select('-password -__v');
+        res.status(200).send(users)
+    } catch (error) {
+        res.status(500).json({ error: "Error creating user" });
+    }
+}
+
+export const checkAdmin = async (req:Request, res: Response) => {
+    res.send({isAdmin: true})
+}
+
+export const loginUserHandler = async (req: Request, res: Response) => {
+    try{
+        setCookie(req,res);
+        res.send({message: "User logged in successfully"});
+    }catch(error){
+        res.status(500).send({message: "Internal Server Error"});
+    }
+}
+
+export const logoutHandler = async (req: Request, res: Response) => { 
+    try {
+        res.clearCookie('token');
+        res.status(200).send({ message: 'Logged out successfully' });
+    }
+    catch (error) {
+        res.status(500).send({ message: 'Internal Server Error' });
+    }
+}
+
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/middleware/hashPassword.ts
+Type: Source File
+Size: 0.50 KB
+============================================================
+
+import bcrypt from 'bcrypt'
+import { NextFunction, Request, Response } from 'express';
+
+const hashPassword = async (req:Request, res:Response, next:NextFunction) => {
+    try {
+        const { password } = req.body;
+        if (!password) {
+            res.status(403).json({ message: "There is a problem in your request!" });
+            return;
+        }
+        req.body.password = await bcrypt.hash(password, 14);
+        next();
+    } catch (error) {
+        next(error);
+    }
+};
+
+export default hashPassword;
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/middleware/verifyAdmin.ts
+Type: Source File
+Size: 0.92 KB
+============================================================
+
+import { Request, Response, NextFunction } from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import {User} from "../models/User.model";
+
+// Define RequestHandler type to match Express middleware signature
+const verifyAdmin = async (
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const token = req.cookies?.token;
+    if (!token) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
+    const user = await User.findOne({email: decoded.email})
+    if(!user){
+      res.status(404).json({ message: "User not found!" });
+      return;
+    }
+    
+    if (user?.role !== "admin") {
+      res.status(403).json({ message: "Authorization Failed!" });
+      return;
+    }
+    next();
+  } catch (error) {
+    next('"Invalid or expired token"')
+  }
+};
+
+export default verifyAdmin;
+
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/models/Category.model.ts
+Type: Source File
+Size: 0.52 KB
+============================================================
+
+import { Schema, model } from "mongoose";
+
+const categorySchema = new Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    slug: { type: String, unique: true, lowercase: true, trim: true },
+
+    // NEW
+    image: { type: String, default: null },
+
+    items: { type: Number, default: 0 },
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "active",
+    },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  }
+);
+
+export const Category = model("Category", categorySchema);
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/models/Order.model.ts
+Type: Source File
+Size: 1.34 KB
+============================================================
+
+// src/models/Order.model.ts
+// src/models/Order.model.ts
+import { Schema, model, Types } from "mongoose";
+
+const orderSchema = new Schema(
+  {
+    userId: {
+      type: Types.ObjectId,
+      ref: "User",
+    },
+
+    name: {
+      type: String,
+      required: true,
+    },
+
+    phone: {
+      type: String,
+      required: true,
+    },
+
+    zila: {
+      type: String,
+      required: true,
+    },
+
+    thana: {
+      type: String,
+      required: true,
+    },
+
+    fullAddress: {
+      type: String,
+      required: true,
+    },
+
+    note: {
+      type: String,
+    },
+
+    items: [
+      {
+        productId: {
+          type: Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
+
+        name: {
+          type: String,
+          required: true,
+        },
+
+        quantity: {
+          type: Number,
+          required: true,
+        },
+        price: {
+          type: Number,
+          required: true,
+        },
+      },
+    ],
+
+    total: {
+      type: Number,
+      required: true,
+    },
+
+    paymentMethod: {
+      type: String,
+      enum: ["COD"],
+      default: "COD",
+    },
+
+    status: {
+      type: String,
+      enum: ["Pending", "Processing", "Shipped", "Delivered", "Canceled"],
+      default: "Pending",
+    },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  }
+);
+
+export const Order = model("Order", orderSchema);
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/models/Product.model.ts
+Type: Source File
+Size: 1.20 KB
+============================================================
+
+import { Schema, model } from "mongoose";
+
+const productSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+
+    description: {
+      type: String,
+      required: true,
+    },
+
+    price: {
+      type: Number,
+      required: true,
+    },
+
+    oldPrice: {
+      type: Number,
+    },
+
+    discount: {
+      type: Number,
+      default: 0,
+    },
+
+    images: {
+      type: [String],
+      required: true,
+    },
+
+    stock: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+
+    soldCount: {
+      type: Number,
+      default: 0,
+    },
+
+    category: { 
+      type: Schema.Types.ObjectId, 
+      ref: "Category",             
+      required: true,
+    },
+
+    rating: {
+      type: Number,
+      default: 0,
+    },
+
+    reviewCount: {
+      type: Number,
+      default: 0,
+    },
+
+    isFlash: {
+      type: Boolean,
+      default: false,
+    },
+
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  }
+);
+
+export const Product = model("Product", productSchema);
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/models/User.model.ts
+Type: Source File
+Size: 0.41 KB
+============================================================
+
+import { Schema, model, Types } from "mongoose";
+
+const userSchema = new Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    role: { type: String, required: true, enum: ["member", "admin"] },
+    orderIds: [{ type: Types.ObjectId, ref: "BookOrder" }],
+});
+
+export const User = model("User", userSchema);
+
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/routes/category.router.ts
+Type: Source File
+Size: 0.86 KB
+============================================================
+
+import express from "express";
+import verifyAdmin from "../middleware/verifyAdmin";
+import {
+  createCategoryHandler,
+  getAllCategoriesHandler,
+  updateCategoryHandler,
+  deleteCategoryHandler
+} from "../controller/category.controller";
+
+const categoryRouter = express.Router();
+
+categoryRouter.get("/", getAllCategoriesHandler); // Public
+
+// TODO: temporarily we do comment the admin verification but we will uncomment once user module finished
+
+// categoryRouter.post("/", verifyAdmin, createCategoryHandler); // Admin only
+// categoryRouter.put("/:id", verifyAdmin, updateCategoryHandler); // Admin only
+// categoryRouter.delete("/:id", verifyAdmin, deleteCategoryHandler); // Admin only
+
+categoryRouter.post("/", createCategoryHandler); 
+categoryRouter.put("/:id", updateCategoryHandler);
+categoryRouter.delete("/:id", deleteCategoryHandler);
+
+export default categoryRouter;
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/routes/order.router.ts
+Type: Source File
+Size: 0.74 KB
+============================================================
+
+// src/routes/order.router.ts
+import express from "express";
+import { getAllOrdersHandler, getOrderHandler, updateOrderStatusHandler, deleteOrderHandler } from "../controller/order.controller";
+import { createOrderHandler } from "../controller/order.controller";
+import verifyAdmin from "../middleware/verifyAdmin";
+
+const orderRouter = express.Router();
+
+orderRouter.get("/", 
+    // verifyAdmin, 
+    getAllOrdersHandler
+);
+orderRouter.get("/:id", 
+    // verifyAdmin,
+    getOrderHandler);
+orderRouter.put("/:id", 
+    // verifyAdmin, 
+    updateOrderStatusHandler
+);
+orderRouter.delete("/:id",
+    //  verifyAdmin,
+     
+     deleteOrderHandler);
+
+// Public: anyone can create an order
+orderRouter.post("/", createOrderHandler); 
+
+export default orderRouter;
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/routes/product.router.ts
+Type: Source File
+Size: 0.71 KB
+============================================================
+
+import express from "express";
+
+import {
+  createProductHandler,
+  deleteProductHandler,
+  getAllProductsHandler,
+  getSingleProductHandler,
+  updateProductHandler,
+} from "../controller/product.controller";
+
+import verifyAdmin from "../middleware/verifyAdmin";
+
+const productRouter = express.Router();
+
+
+
+/**
+ * PUBLIC ROUTES
+ */
+
+
+productRouter.get(
+  "/",
+  getAllProductsHandler
+);
+
+productRouter.get(
+  "/:id",
+  getSingleProductHandler
+);
+
+
+
+/**
+ * ADMIN ROUTES
+ */
+productRouter.post(
+  "/",
+  // verifyAdmin,
+  createProductHandler
+);
+
+productRouter.put(
+  "/:id",
+  // verifyAdmin,
+  updateProductHandler
+);
+
+productRouter.delete(
+  "/:id",
+  // verifyAdmin,
+  deleteProductHandler
+);
+
+export default productRouter;
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/routes/user.router.ts
+Type: Source File
+Size: 0.57 KB
+============================================================
+
+import express from "express";
+import { checkAdmin, getUserHandler, loginUserHandler, logoutHandler, registerUserHandler } from "../controller/user.controller";
+import hashPassword from "../middleware/hashPassword";
+import verifyAdmin from "../middleware/verifyAdmin";
+
+const userRouter = express.Router();
+
+userRouter.post("/", hashPassword, registerUserHandler);
+userRouter.post("/login", loginUserHandler);
+userRouter.get("/", verifyAdmin, getUserHandler);
+userRouter.get("/check-admin",verifyAdmin, checkAdmin);
+userRouter.post("/logout", logoutHandler);
+
+
+export default userRouter;
+
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/schemas/Category.schema.ts
+Type: Source File
+Size: 0.22 KB
+============================================================
+
+import { z } from "zod";
+
+export const categoryZodSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  image: z.string().optional(),
+  status: z.enum(["active", "inactive"]).optional().default("active"),
+});
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/schemas/Order.schema.ts
+Type: Source File
+Size: 0.88 KB
+============================================================
+
+// src/schemas/Order.schema.ts
+import { z } from "zod";
+
+export const orderStatusEnum = z.enum([
+  "Pending",
+  "Processing",
+  "Canceled",
+  "Shipped",
+  "Delivered",
+]);
+
+export const orderZodSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  phone: z.string().min(1, "Phone number is required"),
+  zila: z.string().min(1, "Zila is required"),
+  thana: z.string().min(1, "Thana is required"),
+  fullAddress: z.string().min(1, "Full address is required"),
+  note: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().min(1, "Product ID is required"),
+
+        quantity: z
+          .number()
+          .int()
+          .positive("Quantity must be greater than 0"),
+      })
+    )
+    .min(1, "Order must contain at least one item"),
+  paymentMethod: z
+    .enum(["COD"])
+    .default("COD"),
+  status: orderStatusEnum.default("Pending"),
+});
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/schemas/Product.schema.ts
+Type: Source File
+Size: 1.15 KB
+============================================================
+
+// import { z } from "zod";
+
+// export const productZodSchema = z.object({
+//   name: z.string().min(1),
+//   slug: z.string().min(1),
+//   description: z.string().min(1),
+//   price: z.number().positive(),
+//   oldPrice: z.number().optional(),
+//   discount: z.number().optional(),
+//   images: z.array(z.string()).min(1),
+//   stock: z.number().nonnegative(),
+//   soldCount: z.number().optional(),
+//   categoryId: z.string().min(1),
+//   rating: z.number().optional(),
+//   reviewCount: z.number().optional(),
+//   isFlash: z.boolean().optional(),
+//   isActive: z.boolean().optional(),
+// });
+
+import { z } from "zod";
+
+export const productZodSchema = z.object({
+  name: z.string().min(1),
+  slug: z.string().min(1),
+  description: z.string().min(1),
+  price: z.number().positive(),
+  oldPrice: z.number().optional(),
+  discount: z.number().optional(),
+  images: z.array(z.string()).min(1),
+  stock: z.number().nonnegative(),
+  soldCount: z.number().optional(),
+  category: z.string().min(1), // Changed from categoryId to category
+  rating: z.number().optional(),
+  reviewCount: z.number().optional(),
+  isFlash: z.boolean().optional(),
+  isActive: z.boolean().optional(),
+});
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/schemas/User.schema.ts
+Type: Source File
+Size: 0.61 KB
+============================================================
+
+import { z } from 'zod';
+
+export const zodUserSchema = z.object({
+        name: z.string()
+            .min(2, 'Name must be at least 2 characters long')
+            .max(50, 'Name cannot exceed 50 characters'),
+        email: z.string()
+            .email('Invalid email address')
+            .min(1, 'Email is required'),
+        password: z.string()
+            .min(6, 'Password must be at least 6 characters long')
+            .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+            .regex(/[0-9]/, 'Password must contain at least one number'),
+        role: z.enum(['member', 'admin'])    
+});
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/server.ts
+Type: Source File
+Size: 1.64 KB
+============================================================
+
+// dependencies
+import cookieParser from 'cookie-parser';
+import cors from "cors";
+import dotenv from "dotenv";
+import express from "express";
+dotenv.config();
+
+import { connectDB } from "./config/connectDB";
+const PORT = process.env.PORT || 5000;
+
+import productRouter from "./routes/product.router";
+import userRoutes from "./routes/user.router";
+import categoryRouter from './routes/category.router';
+import orderRouter from './routes/order.router';
+
+const app = express();
+
+// Middlewares
+app.use(express.json());
+app.use(cookieParser())
+app.use(express.urlencoded({ extended: true, limit: "100mb" }));
+
+app.use(cors({
+    origin: [
+        "http://localhost:3000",
+        "http://192.168.0.105:5173",
+        "https://rainbow-bazaarbd.vercel.app",
+    ],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    allowedHeaders: "Content-Type, Authorization",
+    credentials: true
+}));
+
+
+
+// Routes
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/categories", categoryRouter);
+app.use("/api/v1/products", productRouter);
+app.use("/api/v1/orders", orderRouter);
+
+// Connect to MongoDB
+connectDB()
+
+app.get("/",  (req, res) => {
+    res.json({
+        status:'Ok',
+        message: "Rainbow bazaar BD api is running...",
+    });
+});
+
+app.get("/health", (req, res) => {
+    res.json({
+        message: "Ok",
+        status: "success",
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        memoryUsage: process.memoryUsage(),
+        cpuUsage: process.cpuUsage(),
+        nodeVersion: process.version,
+        platform: process.platform,
+    });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on:http://localhost:${PORT}`);
+});
+
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/utils/multerUpload.ts
+Type: Source File
+Size: 0.40 KB
+============================================================
+
+import multer from "multer";
+
+const storage = multer.memoryStorage();
+  
+const fileFilter = (req: any, file: any, cb: any) => {
+  if (file.mimetype === 'application/pdf') {
+    cb(null, true);
+  } else {
+    cb(new Error('Only PDF files are allowed!'), false);
+  }
+};
+
+export const upload = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 100 * 1024 * 1024, 
+    files: 5 // max 5 files
+  }
+});
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/utils/setCookie.ts
+Type: Source File
+Size: 0.95 KB
+============================================================
+
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+
+const setCookie = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body; // Extract user details from request body (or use req.user if authenticated)
+
+        if (!email) {
+            res.status(400).json({ message: "User Email is required" });
+            return;
+        }
+
+        // Generate JWT token
+        const token = jwt.sign({ email }, process.env.JWT_SECRET as string, { expiresIn: "7d" });
+
+        // Set HTTP-only cookie
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", // Only send over HTTPS in production
+            sameSite: "none", // For cross-origin requests
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+export default setCookie;
+
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/utils/slugBuilder.ts
+Type: Source File
+Size: 0.27 KB
+============================================================
+
+export const slugBuilder = (text: string): string => {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "") // remove special characters
+      .replace(/\s+/g, "-") // replace spaces with -
+      .replace(/-+/g, "-"); // remove duplicate -
+  };
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: tools/combine-files.js
+Type: Source File
+Size: 4.92 KB
+============================================================
+
+/* eslint-disable @typescript-eslint/no-require-imports */
+/**
+ * combine-files.js (PRO VERSION)
+ *
+ * Full-code export with:
+ *  - All essential code files
+ *  - All important setup/config files
+ *  - Clean directory tree structure
+ *  - Binary-safe reads
+ *  - LLM-optimized clean formatting
+ *
+ * Output: m1-clean.txt
+ */
+
+const fs = require("fs");
+const path = require("path");
+
+const projectRoot = path.join(__dirname, "../");
+const outputFile = path.join(__dirname, "rainbow-bazaarbd-backend.txt");
+
+// Include these file extensions
+const allowedExtensions = [
+  ".js",
+  ".ts",
+  ".jsx",
+  ".tsx",
+  ".json",
+  ".md",
+  ".yml",
+  ".yaml",
+  ".css",
+  ".scss"
+];
+
+// Excluded folders
+const excludedFolders = [
+  "node_modules",
+  ".next",
+  "dist",
+  "build",
+  ".turbo",
+  ".git",
+  "coverage",
+  "test",
+  "tests",
+  "__tests__",
+  "public", // images not needed for LLMs
+  ".pnpm-store",
+  "out"
+];
+
+const excludedFiles = [
+  ".DS_Store",
+  "thumbs.db",
+  "pnpm-lock.yaml",
+  "yarn.lock",
+  "package-lock.json",
+  ".env",
+  ".env.local",
+  ".env.development",
+  ".env.production"
+];
+
+/**
+ * Check if file is binary
+ */
+function isBinary(filePath) {
+  try {
+    const buffer = fs.readFileSync(filePath);
+    return buffer.includes(0); // null byte → probably binary
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Recursively collect all allowed files
+ */
+function getAllFiles(dir, fileList = []) {
+  const files = fs.readdirSync(dir);
+
+  for (const filename of files) {
+    const fullPath = path.join(dir, filename);
+    const relative = path.relative(projectRoot, fullPath);
+    const stat = fs.statSync(fullPath);
+
+    // Exclude excluded folders
+    if (stat.isDirectory()) {
+      if (excludedFolders.some(f => relative.startsWith(f))) continue;
+      getAllFiles(fullPath, fileList);
+      continue;
+    }
+
+    // Exclude specific files
+    if (excludedFiles.includes(filename)) continue;
+
+    const ext = path.extname(filename).toLowerCase();
+
+    // Allow important config files even if extension not in list
+    const alwaysIncludeFiles = [
+      "next.config.js",
+      "tsconfig.json",
+      "package.json",
+      ".eslintrc.js",
+      "eslint.config.js",
+      ".prettierrc",
+      ".prettierrc.json",
+      ".prettierrc.js",
+      "docker-compose.yml",
+      "Dockerfile",
+      "README.md"
+    ];
+
+    const isAlwaysIncluded = alwaysIncludeFiles.includes(filename);
+
+    if (allowedExtensions.includes(ext) || isAlwaysIncluded) {
+      if (!isBinary(fullPath)) {
+        fileList.push({
+          path: fullPath,
+          relative: relative
+        });
+      }
+    }
+  }
+
+  return fileList;
+}
+
+/**
+ * Generate a clean folder structure tree
+ */
+function generateTree(dir, prefix = "") {
+  let tree = "";
+  const files = fs.readdirSync(dir);
+
+  files.forEach((file, index) => {
+    const fullPath = path.join(dir, file);
+    const relative = path.relative(projectRoot, fullPath);
+
+    if (excludedFolders.some(f => relative.startsWith(f))) return;
+
+    const isLast = index === files.length - 1;
+    const connector = isLast ? "└── " : "├── ";
+
+    tree += `${prefix}${connector}${file}\n`;
+
+    if (fs.statSync(fullPath).isDirectory()) {
+      tree += generateTree(
+        fullPath,
+        prefix + (isLast ? "    " : "│   ")
+      );
+    }
+  });
+
+  return tree;
+}
+
+/**
+ * Smart file type detection based on path
+ */
+function detectType(filepath) {
+  const lower = filepath.toLowerCase();
+  if (lower.includes("/app/")) return "Next.js Route";
+  if (lower.includes("/api/")) return "API Layer";
+  if (lower.includes("/components/")) return "UI Component";
+  if (lower.includes("/hooks/")) return "React Hook";
+  if (lower.includes("/features/")) return "Feature Module";
+  if (lower.includes("config")) return "Config File";
+  if (lower.endsWith(".md")) return "Documentation";
+  return "Source File";
+}
+
+/**
+ * MAIN FUNCTION
+ */
+function run() {
+  console.log("📦 Generating full code export...");
+
+  let content = `# 📁 Combined Project Source (For LLM Use)
+Generated: ${new Date().toISOString()}
+
+=========================================
+📂 PROJECT FOLDER STRUCTURE
+=========================================
+
+${generateTree(projectRoot)}
+
+=========================================
+📦 SOURCE FILES
+=========================================
+
+`;
+
+  // Collect files
+  const files = getAllFiles(projectRoot);
+  files.sort((a, b) => a.relative.localeCompare(b.relative));
+
+  // Write each file
+  for (const file of files) {
+    const fileContent = fs.readFileSync(file.path, "utf-8");
+    const sizeKB = (Buffer.byteLength(fileContent) / 1024).toFixed(2);
+    const type = detectType(file.relative);
+
+    content += `
+============================================================
+===== FILE START: ${file.relative}
+Type: ${type}
+Size: ${sizeKB} KB
+============================================================
+
+${fileContent}
+
+===== END FILE =====
+
+
+`;
+  }
+
+  fs.writeFileSync(outputFile, content);
+  console.log(`✨ Done! File generated: ${outputFile}`);
+}
+
+run();
+
+// node tools/combine-files.js
+
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: tools/combine-selected-modules.js
+Type: Source File
+Size: 4.56 KB
+============================================================
+
+/* eslint-disable @typescript-eslint/no-require-imports */
+/**
+ * combine-selected-modules.js
+ *
+ * Combines selected folders/files and outputs them into one file.
+ * Modified to include inventory module, related imports, and UI folder.
+ */
+
+const fs = require("fs");
+const path = require("path");
+
+// Project root: tools/ → root
+const ROOT_DIR = path.resolve(__dirname, "..");
+
+// Allowed extensions
+const INCLUDE_EXTENSIONS = [".tsx", ".ts"];
+
+// ---------------------------
+// Selected Modules for Inventory
+// ---------------------------
+const selectedModules = [
+"src",
+];
+
+/**
+ * Recursively fetch files from a directory
+ */
+function getFilesRecursively(dir) {
+  let results = [];
+  if (!fs.existsSync(dir)) return results;
+  const items = fs.readdirSync(dir);
+
+  for (const item of items) {
+    const fullPath = path.join(dir, item);
+    const stat = fs.statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      results = results.concat(getFilesRecursively(fullPath));
+    } else if (stat.isFile()) {
+      const ext = path.extname(item);
+      if (INCLUDE_EXTENSIONS.includes(ext)) {
+        results.push(fullPath);
+      }
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Collect initial files from provided directories / files
+ */
+function collectInitialFiles(paths) {
+  let files = [];
+
+  for (const relPath of paths) {
+    const fullPath = path.join(ROOT_DIR, relPath);
+
+    if (!fs.existsSync(fullPath)) {
+      console.warn(`⚠ Path does not exist: ${relPath}`);
+      continue;
+    }
+
+    const stat = fs.statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      files = files.concat(getFilesRecursively(fullPath));
+    } else if (stat.isFile()) {
+      const ext = path.extname(fullPath);
+      if (INCLUDE_EXTENSIONS.includes(ext)) {
+        files.push(fullPath);
+      }
+    }
+  }
+
+  return files;
+}
+
+/**
+ * Find import paths from file content
+ */
+function findImports(content) {
+  // Match imports like: from "@/path/to/module"
+  const matches = content.matchAll(/from\s+["'](@\/[^"']+)["']/g);
+  const imports = Array.from(matches, m => m[1]);
+
+  // Also handle import ... from "@/..."
+  const matches2 = content.matchAll(/import\s+.*?\s+from\s+["'](@\/[^"']+)["']/g);
+  imports.push(...Array.from(matches2, m => m[1]));
+
+  return new Set(imports);
+}
+
+/**
+ * Resolve alias to full path
+ */
+function resolveImport(importPath) {
+  if (importPath.startsWith('@/')) {
+    return importPath.replace('@/', 'src/');
+  }
+  return importPath;
+}
+
+/**
+ * Collect all related files by following imports
+ */
+function collectRelatedFiles(initialFiles) {
+  const collected = new Set(initialFiles);
+  let toProcess = [...initialFiles];
+
+  while (toProcess.length > 0) {
+    const current = toProcess.shift();
+    const content = fs.readFileSync(current, 'utf-8');
+
+    const imports = findImports(content);
+    for (let imp of imports) {
+      let resolved = resolveImport(imp);
+
+      // If it's a directory, try index
+      let fullPath = path.join(ROOT_DIR, resolved);
+      if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
+        resolved = path.join(resolved, 'index');
+      }
+
+      // Try .ts and .tsx extensions
+      let found = false;
+      for (const ext of INCLUDE_EXTENSIONS) {
+        const candidate = path.join(ROOT_DIR, resolved + ext);
+        if (fs.existsSync(candidate)) {
+          fullPath = candidate;
+          found = true;
+          break;
+        }
+      }
+
+      if (found && !collected.has(fullPath)) {
+        collected.add(fullPath);
+        toProcess.push(fullPath);
+      }
+    }
+  }
+
+  return Array.from(collected).sort();
+}
+
+/**
+ * Combine
+ */
+function combineSelectedModules() {
+  console.log("🔎 Combining inventory module and related files...");
+
+  const initialFiles = collectInitialFiles(selectedModules);
+
+  if (initialFiles.length === 0) {
+    console.log("❌ No initial files found.");
+    return;
+  }
+
+  const allFiles = collectRelatedFiles(initialFiles);
+
+  if (allFiles.length === 0) {
+    console.log("❌ No files to combine.");
+    return;
+  }
+
+  let output = "";
+
+  for (const file of allFiles) {
+    const relative = path.relative(ROOT_DIR, file);
+    console.log("→ " + relative);
+
+    const content = fs.readFileSync(file, "utf-8");
+
+    output += `\n\n/* ===== ${relative} ===== */\n\n`;
+    output += content;
+  }
+
+  const outputFile = path.join(__dirname, `output-rainbow-bazaar-bd-backend-combine-${selectedModules[0].split('/')[selectedModules[0].split('/').length - 1]}-module.txt`);
+  fs.writeFileSync(outputFile, output.trim(), "utf-8");
+
+  console.log(`\n✅ Combined ${allFiles.length} files → ${outputFile}`);
+}
+
+combineSelectedModules();
+
+// node tools/combine-selected-modules.js
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: tsconfig.json
+Type: Config File
+Size: 0.82 KB
+============================================================
+
+{
+  "compilerOptions": {
+    "target": "ES2020", // Added to support modern JavaScript features
+    "module": "NodeNext", // Added for modern module system
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "moduleResolution": "NodeNext", // Updated to match module
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "skipLibCheck": true, // Added to skip checking node_modules
+    "forceConsistentCasingInFileNames": true, // Added for better file handling
+    "paths": {
+      "@src/*": [
+        "./src/*"
+      ],
+      "@utils/*": [
+        "./src/utils/*"
+      ],
+      "@components/*": [
+        "./src/components/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ], // Added to explicitly include source files
+  "exclude": [
+    "node_modules"
+  ] // Added to explicitly exclude node_modules
+}
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: vercel.json
+Type: Source File
+Size: 0.23 KB
+============================================================
+
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "src/server.ts",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "src/server.ts"
+        }
+    ]
+}
+
+===== END FILE =====
+
+

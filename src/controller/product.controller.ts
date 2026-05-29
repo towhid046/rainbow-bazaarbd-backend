@@ -18,7 +18,8 @@ export const getAllProductsHandler = async (
       category,
       flash,
       featured,
-      sort,
+      sort
+      ,
     } = req.query;
 
     const pageNumber = Number(page);
@@ -70,24 +71,22 @@ export const getAllProductsHandler = async (
     /**
      * SORTING
      */
-    let sortOption: any = {
-      createdAt: -1,
-    };
+/**
+ * SORTING
+ */
+    let sortOption: any = {};
 
     if (sort === "price-asc") {
-      sortOption.price = 1;
-    }
-
-    if (sort === "price-desc") {
-      sortOption.price = -1;
-    }
-
-    if (sort === "best-selling") {
-      sortOption.soldCount = -1;
-    }
-
-    if (sort === "top-rated") {
-      sortOption.rating = -1;
+      sortOption = { price: 1 };
+    } else if (sort === "price-desc") {
+      sortOption = { price: -1 };
+    } else if (sort === "best-selling") {
+      sortOption = { soldCount: -1 };
+    } else if (sort === "top-rated") {
+      sortOption = { rating: -1 };
+    } else {
+      // Default sorting if no match or no sort parameter is provided
+      sortOption = { createdAt: -1 };
     }
 
     const total = await Product.countDocuments(query);

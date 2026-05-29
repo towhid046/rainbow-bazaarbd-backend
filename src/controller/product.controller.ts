@@ -51,7 +51,16 @@ export const getAllProductsHandler = async (
      * CATEGORY FILTER
      */
     if (category) {
-      query.category = category; // Changed query target to category
+      const categoryIds = String(category)
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
+    
+      if (categoryIds.length === 1) {
+        query.category = categoryIds[0];
+      } else if (categoryIds.length > 1) {
+        query.category = { $in: categoryIds };
+      }
     }
 
     /**
@@ -66,6 +75,28 @@ export const getAllProductsHandler = async (
      */
     if (featured === "true") {
       query.isFeatured = true;
+    }
+    /**
+     * PRICE FILTER
+     */
+    const minPrice = req.query.minPrice
+    ? Number(req.query.minPrice)
+    : undefined;
+      
+    const maxPrice = req.query.maxPrice
+    ? Number(req.query.maxPrice)
+    : undefined;
+      
+    if (minPrice !== undefined || maxPrice !== undefined) {
+    query.price = {};
+    
+    if (minPrice !== undefined) {
+      query.price.$gte = minPrice;
+    }
+    
+    if (maxPrice !== undefined) {
+      query.price.$lte = maxPrice;
+    }
     }
 
     /**

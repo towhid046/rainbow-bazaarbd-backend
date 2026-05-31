@@ -319,55 +319,6 @@ export const deleteOrderHandler = async (
   }
 };
 
-// GET ORDER SUMMARY
-// export const getOrderSummaryHandler = async (
-//   req: Request,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     // TOTAL REVENUE (ONLY DELIVERED)
-//     const revenueResult = await Order.aggregate([
-//       {
-//         $match: {
-//           status: "Delivered",
-//         },
-//       },
-//       {
-//         $group: {
-//           _id: null,
-//           totalRevenue: {
-//             $sum: "$total",
-//           },
-//         },
-//       },
-//     ]);
-
-//     const totalRevenue =
-//       revenueResult[0]?.totalRevenue || 0;
-
-//     // TOTAL ORDERS
-//     const totalOrders =
-//       await Order.countDocuments();
-
-//     // TOTAL PRODUCTS
-//     const totalProducts =
-//       await Product.countDocuments();
-
-//     res.status(200).json({
-//       success: true,
-//       data: {
-//         totalRevenue,
-//         totalOrders,
-//         totalProducts
-//       },
-//     });
-//   } catch (error: any) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// };
 
 // GET ORDER SUMMARY
 export const getOrderSummaryHandler = async (

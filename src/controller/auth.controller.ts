@@ -107,30 +107,43 @@ export const login = async (req: Request, res: Response): Promise<void> => {
  */
 export const googleLogin = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { idToken } = req.body;
+    // Expect the accessToken from the frontend now
+    const { accessToken } = req.body;
 
-    if (!idToken) {
-      res.status(400).json({ success: false, message: "Google ID Token is required" });
+    if (!accessToken) {
+      res.status(400).json({ success: false, message: "Google Access Token is required" });
       return;
     }
 
-    const googlePayload = await verifyGoogleToken(idToken);
-    const { email, name, picture, sub: googleId } = googlePayload;
+    // Call Google's tokeninfo API to securely verify the access token from the frontend
+    const googleResponse = await fetch(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}`);
+    const tokenInfo = await googleResponse.json();
 
-    if (!email) {
-      res.status(400).json({ success: false, message: "Google account missing email address" });
+    if (tokenInfo.error || !tokenInfo.email) {
+      res.status(401).json({ success: false, message: "Invalid Google token authentication" });
       return;
     }
+
+    // Now request user profile details using the token
+    const userProfileResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    const profile = await userProfileResponse.json();
+
+    const email = tokenInfo.email;
+    const name = profile.name || "Google User";
+    const picture = profile.picture || "";
+    const googleId = tokenInfo.sub; // Google User ID
 
     let user = await User.findOne({ email });
 
     if (!user) {
       user = await User.create({
-        name: name || "Google User",
+        name: name,
         email: email.toLowerCase(),
         googleId,
         authProvider: "google",
-        avatar: picture || "",
+        avatar: picture,
         isVerified: true,
       });
     } else if (!user.googleId) {
@@ -156,7 +169,7 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
       },
     });
   } catch (error: any) {
-    res.status(401).json({ success: false, message: error.message || "Google authentication failed" });
+    res.status(500).json({ success: false, message: error.message || "Google authentication failed" });
   }
 };
 

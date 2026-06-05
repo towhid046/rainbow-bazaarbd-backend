@@ -1,5 +1,5 @@
 # 📁 Combined Project Source (For LLM Use)
-Generated: 2026-06-05T08:07:40.314Z
+Generated: 2026-06-05T11:54:54.978Z
 
 =========================================
 📂 PROJECT FOLDER STRUCTURE
@@ -18,13 +18,13 @@ Generated: 2026-06-05T08:07:40.314Z
 │   ├── config
 │   │   └── connectDB.ts
 │   ├── controller
+│   │   ├── auth.controller.ts
 │   │   ├── category.controller.ts
 │   │   ├── order.controller.ts
-│   │   ├── product.controller.ts
-│   │   └── user.controller.ts
+│   │   └── product.controller.ts
 │   ├── middleware
-│   │   ├── hashPassword.ts
-│   │   └── verifyAdmin.ts
+│   │   ├── auth.middleware.ts
+│   │   └── hashPassword.ts
 │   ├── models
 │   │   ├── Category.model.ts
 │   │   ├── Order.model.ts
@@ -32,10 +32,10 @@ Generated: 2026-06-05T08:07:40.314Z
 │   │   └── User.model.ts
 │   ├── routes
 │   │   ├── .DS_Store
+│   │   ├── auth.router.ts
 │   │   ├── category.router.ts
 │   │   ├── order.router.ts
-│   │   ├── product.router.ts
-│   │   └── user.router.ts
+│   │   └── product.router.ts
 │   ├── schemas
 │   │   ├── Category.schema.ts
 │   │   ├── Order.schema.ts
@@ -43,8 +43,7 @@ Generated: 2026-06-05T08:07:40.314Z
 │   │   └── User.schema.ts
 │   ├── server.ts
 │   └── utils
-│       ├── multerUpload.ts
-│       ├── setCookie.ts
+│       ├── auth.ts
 │       └── slugBuilder.ts
 ├── tools
 │   ├── .DS_Store
@@ -52,7 +51,6 @@ Generated: 2026-06-05T08:07:40.314Z
 │   ├── combine-selected-modules.js
 │   └── rainbow-bazaarbd-backend.txt
 ├── tsconfig.json
-├── uploads
 └── vercel.json
 
 
@@ -76,7 +74,7 @@ Size: 0.13 KB
 ============================================================
 ===== FILE START: package.json
 Type: Source File
-Size: 1.10 KB
+Size: 1.17 KB
 ============================================================
 
 {
@@ -96,13 +94,14 @@ Size: 1.10 KB
   "description": "",
   "dependencies": {
     "@types/bcrypt": "^5.0.2",
-    "bcrypt": "^5.1.1",
-    "cloudinary": "^1.41.3",
+    "bcrypt": "^6.0.0",
+    "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "jsonwebtoken": "^9.0.2",
+    "google-auth-library": "^10.7.0",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.10.0",
     "multer": "^1.4.5-lts.2",
     "nodemon": "^3.1.9",
@@ -112,6 +111,7 @@ Size: 1.10 KB
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
@@ -124,6 +124,7 @@ Size: 1.10 KB
     "typescript": "^5.7.3"
   }
 }
+
 
 ===== END FILE =====
 
@@ -147,6 +148,220 @@ export const connectDB = async () => {
     }
 };
 
+
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/controller/auth.controller.ts
+Type: Source File
+Size: 5.72 KB
+============================================================
+
+import bcrypt from "bcryptjs";
+import { Request, Response } from "express";
+import { AuthenticatedRequest } from "../middleware/auth.middleware";
+import { User } from "../models/User.model";
+import { loginUserSchema, registerUserSchema } from "../schemas/User.schema";
+import { generateToken, verifyGoogleToken } from "../utils/auth";
+
+// Cookie options for cross-origin security
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production", // Uses secure HTTPS in production
+  sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Days
+};
+
+/**
+ * Handle Traditional Email/Password Registration
+ */
+export const register = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, email, password } = registerUserSchema.parse(req.body);
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      res.status(400).json({ success: false, message: "Email is already registered" });
+      return;
+    }
+
+    const newUser = await User.create({
+      name,
+      email,
+      password,
+      authProvider: "credentials",
+    });
+
+    const token = generateToken(newUser._id.toString(), newUser.role);
+
+    // Set token inside HTTP-only Cookie
+    res.cookie("token", token, cookieOptions);
+
+    res.status(201).json({
+      success: true,
+      message: "Registration successful",
+      data: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        avatar: newUser.avatar,
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || "Server Error" });
+  }
+};
+
+/**
+ * Handle Traditional Email/Password Login
+ */
+export const login = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, password } = loginUserSchema.parse(req.body);
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      res.status(401).json({ success: false, message: "Invalid email or password" });
+      return;
+    }
+
+    if (user.authProvider === "google" && !user.password) {
+      res.status(400).json({
+        success: false,
+        message: "This account was created using Google Sign-In. Please log in with Google.",
+      });
+      return;
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password || "");
+    if (!isMatch) {
+      res.status(401).json({ success: false, message: "Invalid email or password" });
+      return;
+    }
+
+    const token = generateToken(user._id.toString(), user.role);
+
+    // Set token inside HTTP-only Cookie
+    res.cookie("token", token, cookieOptions);
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || "Server Error" });
+  }
+};
+
+/**
+ * Handle Google OAuth Sign-In & Registration
+ */
+export const googleLogin = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      res.status(400).json({ success: false, message: "Google ID Token is required" });
+      return;
+    }
+
+    const googlePayload = await verifyGoogleToken(idToken);
+    const { email, name, picture, sub: googleId } = googlePayload;
+
+    if (!email) {
+      res.status(400).json({ success: false, message: "Google account missing email address" });
+      return;
+    }
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        name: name || "Google User",
+        email: email.toLowerCase(),
+        googleId,
+        authProvider: "google",
+        avatar: picture || "",
+        isVerified: true,
+      });
+    } else if (!user.googleId) {
+      user.googleId = googleId;
+      if (!user.avatar && picture) user.avatar = picture;
+      await user.save();
+    }
+
+    const token = generateToken(user._id.toString(), user.role);
+
+    // Set token inside HTTP-only Cookie
+    res.cookie("token", token, cookieOptions);
+
+    res.status(200).json({
+      success: true,
+      message: "Google login successful",
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+      },
+    });
+  } catch (error: any) {
+    res.status(401).json({ success: false, message: error.message || "Google authentication failed" });
+  }
+};
+
+/**
+ * Log Out and Clear Authentication Cookie
+ */
+export const logout = async (req: Request, res: Response): Promise<void> => {
+  res.clearCookie("token", {
+    ...cookieOptions,
+    maxAge: 0, // Immediately expires cookie
+  });
+  res.status(200).json({ success: true, message: "Logged out successfully" });
+};
+
+export const getMe = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      // req.user was securely injected by our 'auth' middleware
+      if (!req.user) {
+        res.status(401).json({ success: false, message: "Not authorized" });
+        return;
+      }
+  
+      const user = await User.findById(req.user.id).select("-password"); // Exclude password string for security
+      
+      if (!user) {
+        res.status(404).json({ success: false, message: "User not found" });
+        return;
+      }
+  
+      res.status(200).json({
+        success: true,
+        data: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avatar: user.avatar,
+          authProvider: user.authProvider,
+        },
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message || "Server Error" });
+    }
+};
 
 ===== END FILE =====
 
@@ -1020,87 +1235,68 @@ export const deleteProductHandler = async (
 
 
 ============================================================
-===== FILE START: src/controller/user.controller.ts
+===== FILE START: src/middleware/auth.middleware.ts
 Type: Source File
-Size: 2.29 KB
+Size: 1.61 KB
 ============================================================
 
-// dependencies
-import {Request, Response} from 'express';
-import { z } from 'zod';
-import { User } from '../models/User.model';
-import { zodUserSchema } from '../schemas/User.schema';
-import setCookie from '../utils/setCookie';
+import { NextFunction, Request, Response } from "express";
+import jwt from "jsonwebtoken";
 
-export const registerUserHandler = async (req: Request, res: Response) => {
+export interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    role: string;
+  };
+}
+
+interface JwtPayload {
+  id: string;
+  role: string;
+}
+
+/**
+ * auth routes by verifying JWT and optionally checking user roles
+ */
+export const auth = (...roles: string[]) => {
+  return async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
-        // ✅ Validate user input with Zod using parse()
-        const validUserData = zodUserSchema.parse({ ...req.body, role: "member" });
+      // ১. কুকি থেকে টোকেন রিড করা
+      const token = req.cookies?.token;
 
-        // ✅ Extract validated data
-        const { name, email, password, role } = validUserData;
+      if (!token) {
+        res.status(401).json({ success: false, message: "Not authorized, please log in" });
+        return;
+      }
 
-        // ✅ Check if user already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            res.status(400).json({ message: 'User already exists!' });
-            return;
-        }
+      // ২. টোকেন ভেরিফাই করা
+      const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
 
-        // ✅ Create new user
-         await User.create({ name, email, password, role });
+      // ৩. রোল চেক করা (যদি মিডলওয়্যারে কোনো নির্দিষ্ট রোল পাস করা হয়ে থাকে)
+      if (roles.length > 0 && !roles.includes(decoded.role)) {
+        res.status(403).json({
+          success: false,
+          message: "You do not have permission to perform this action",
+        });
+        return;
+      }
 
-        // ✅ Set cookie
-        await setCookie(req,res)
+      // ৪. রিকোয়েস্টে ইউজার ডাটা অ্যাসাইন করা
+      req.user = {
+        id: decoded.id,
+        role: decoded.role,
+      };
 
-        // ✅ Send response
-        res.status(200).json({ message: 'User registered successfully!' });
+      next();
     } catch (error) {
-        console.error('Error creating user:', error);
-        
-        // Handle Zod validation errors
-        if (error instanceof z.ZodError) {
-            res.status(400).json({ errors: error.errors });
-            return;
-        }
-
-        // Handle other errors
-        res.status(500).json({ error: 'Internal server error' });
+      res.status(401).json({ success: false, message: "Not authorized, invalid session" });
     }
+  };
 };
-
-export const getUserHandler = async (req: Request, res: Response) => {
-    try {
-        const users = await User.find().select('-password -__v');
-        res.status(200).send(users)
-    } catch (error) {
-        res.status(500).json({ error: "Error creating user" });
-    }
-}
-
-export const checkAdmin = async (req:Request, res: Response) => {
-    res.send({isAdmin: true})
-}
-
-export const loginUserHandler = async (req: Request, res: Response) => {
-    try{
-        setCookie(req,res);
-        res.send({message: "User logged in successfully"});
-    }catch(error){
-        res.status(500).send({message: "Internal Server Error"});
-    }
-}
-
-export const logoutHandler = async (req: Request, res: Response) => { 
-    try {
-        res.clearCookie('token');
-        res.status(200).send({ message: 'Logged out successfully' });
-    }
-    catch (error) {
-        res.status(500).send({ message: 'Internal Server Error' });
-    }
-}
-
 
 ===== END FILE =====
 
@@ -1130,53 +1326,6 @@ const hashPassword = async (req:Request, res:Response, next:NextFunction) => {
 };
 
 export default hashPassword;
-
-===== END FILE =====
-
-
-
-============================================================
-===== FILE START: src/middleware/verifyAdmin.ts
-Type: Source File
-Size: 0.92 KB
-============================================================
-
-import { Request, Response, NextFunction } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import {User} from "../models/User.model";
-
-// Define RequestHandler type to match Express middleware signature
-const verifyAdmin = async (
-  req: Request, 
-  res: Response, 
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const token = req.cookies?.token;
-    if (!token) {
-      res.status(401).json({ message: "Unauthorized" });
-      return;
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
-    const user = await User.findOne({email: decoded.email})
-    if(!user){
-      res.status(404).json({ message: "User not found!" });
-      return;
-    }
-    
-    if (user?.role !== "admin") {
-      res.status(403).json({ message: "Authorization Failed!" });
-      return;
-    }
-    next();
-  } catch (error) {
-    next('"Invalid or expired token"')
-  }
-};
-
-export default verifyAdmin;
-
 
 ===== END FILE =====
 
@@ -1416,21 +1565,87 @@ export const Product = model("Product", productSchema);
 ============================================================
 ===== FILE START: src/models/User.model.ts
 Type: Source File
-Size: 0.41 KB
+Size: 0.96 KB
 ============================================================
 
-import { Schema, model, Types } from "mongoose";
+import { Schema, model } from "mongoose";
 
-const userSchema = new Schema({
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    role: { type: String, required: true, enum: ["member", "admin"] },
-    orderIds: [{ type: Types.ObjectId, ref: "BookOrder" }],
-});
+const userSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    password: {
+      type: String,
+      // Optional because Google OAuth users won't have a password initially
+      required: function (this: any) {
+        return this.authProvider === "credentials";
+      },
+    },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+    authProvider: {
+      type: String,
+      enum: ["credentials", "google"],
+      default: "credentials",
+    },
+    googleId: {
+      type: String,
+      default: null,
+    },
+    avatar: {
+      type: String,
+      default: "",
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 export const User = model("User", userSchema);
 
+===== END FILE =====
+
+
+
+============================================================
+===== FILE START: src/routes/auth.router.ts
+Type: Source File
+Size: 0.47 KB
+============================================================
+
+import { Router } from "express";
+import { getMe, googleLogin, login, logout, register } from "../controller/auth.controller";
+import { auth } from "../middleware/auth.middleware";
+import hashPassword from "../middleware/hashPassword";
+
+const router = Router();
+
+router.post("/signup", hashPassword, register);
+router.post("/login", login);
+router.post("/google", googleLogin);
+router.post("/logout", logout);
+
+router.get("/me", auth('user','admin'), getMe);
+
+export default router;
 
 ===== END FILE =====
 
@@ -1439,31 +1654,33 @@ export const User = model("User", userSchema);
 ============================================================
 ===== FILE START: src/routes/category.router.ts
 Type: Source File
-Size: 0.86 KB
+Size: 0.62 KB
 ============================================================
 
 import express from "express";
-import verifyAdmin from "../middleware/verifyAdmin";
 import {
   createCategoryHandler,
+  deleteCategoryHandler,
   getAllCategoriesHandler,
-  updateCategoryHandler,
-  deleteCategoryHandler
+  updateCategoryHandler
 } from "../controller/category.controller";
+import { auth } from "../middleware/auth.middleware";
 
 const categoryRouter = express.Router();
 
 categoryRouter.get("/", getAllCategoriesHandler); // Public
 
-// TODO: temporarily we do comment the admin verification but we will uncomment once user module finished
 
-// categoryRouter.post("/", verifyAdmin, createCategoryHandler); // Admin only
-// categoryRouter.put("/:id", verifyAdmin, updateCategoryHandler); // Admin only
-// categoryRouter.delete("/:id", verifyAdmin, deleteCategoryHandler); // Admin only
+categoryRouter.post("/", 
+  auth("admin"), 
+  createCategoryHandler); // Admin only
+categoryRouter.put("/:id",
+  auth("admin"), 
+  updateCategoryHandler); // Admin only
+categoryRouter.delete("/:id",
+  auth("admin"), 
+  deleteCategoryHandler); // Admin only
 
-categoryRouter.post("/", createCategoryHandler); 
-categoryRouter.put("/:id", updateCategoryHandler);
-categoryRouter.delete("/:id", deleteCategoryHandler);
 
 export default categoryRouter;
 
@@ -1474,37 +1691,38 @@ export default categoryRouter;
 ============================================================
 ===== FILE START: src/routes/order.router.ts
 Type: Source File
-Size: 0.85 KB
+Size: 0.79 KB
 ============================================================
 
 // src/routes/order.router.ts
 import express from "express";
-import { getAllOrdersHandler, getOrderHandler, updateOrderStatusHandler, deleteOrderHandler, getOrderSummaryHandler } from "../controller/order.controller";
-import { createOrderHandler } from "../controller/order.controller";
-import verifyAdmin from "../middleware/verifyAdmin";
+import { createOrderHandler, deleteOrderHandler, getAllOrdersHandler, getOrderHandler, getOrderSummaryHandler, updateOrderStatusHandler } from "../controller/order.controller";
+import { auth } from "../middleware/auth.middleware";
 
 const orderRouter = express.Router();
 orderRouter.get(
     "/summary",
-    // verifyAdmin,
+    auth("admin"),
     getOrderSummaryHandler
   );
 
 orderRouter.get("/", 
-    // verifyAdmin, 
+    auth("admin"), 
     getAllOrdersHandler
 );
+
 orderRouter.get("/:id", 
-    // verifyAdmin,
+    auth("admin"),
     getOrderHandler);
+
 orderRouter.put("/:id", 
-    // verifyAdmin, 
+    auth("admin"), 
     updateOrderStatusHandler
 );
+
 orderRouter.delete("/:id",
-    //  verifyAdmin,
-     
-     deleteOrderHandler);
+    auth("admin"),
+    deleteOrderHandler);
 
 // Public: anyone can create an order
 orderRouter.post("/", createOrderHandler); 
@@ -1531,8 +1749,8 @@ import {
   getSingleProductHandler,
   updateProductHandler,
 } from "../controller/product.controller";
+import { auth } from "../middleware/auth.middleware";
 
-import verifyAdmin from "../middleware/verifyAdmin";
 
 const productRouter = express.Router();
 
@@ -1560,50 +1778,23 @@ productRouter.get(
  */
 productRouter.post(
   "/",
-  // verifyAdmin,
+  auth("admin"), 
   createProductHandler
 );
 
 productRouter.put(
   "/:id",
-  // verifyAdmin,
+  auth("admin"), 
   updateProductHandler
 );
 
 productRouter.delete(
   "/:id",
-  // verifyAdmin,
+  auth("admin"), 
   deleteProductHandler
 );
 
 export default productRouter;
-
-===== END FILE =====
-
-
-
-============================================================
-===== FILE START: src/routes/user.router.ts
-Type: Source File
-Size: 0.57 KB
-============================================================
-
-import express from "express";
-import { checkAdmin, getUserHandler, loginUserHandler, logoutHandler, registerUserHandler } from "../controller/user.controller";
-import hashPassword from "../middleware/hashPassword";
-import verifyAdmin from "../middleware/verifyAdmin";
-
-const userRouter = express.Router();
-
-userRouter.post("/", hashPassword, registerUserHandler);
-userRouter.post("/login", loginUserHandler);
-userRouter.get("/", verifyAdmin, getUserHandler);
-userRouter.get("/check-admin",verifyAdmin, checkAdmin);
-userRouter.post("/logout", logoutHandler);
-
-
-export default userRouter;
-
 
 ===== END FILE =====
 
@@ -1706,23 +1897,31 @@ export const productZodSchema = z.object({
 ============================================================
 ===== FILE START: src/schemas/User.schema.ts
 Type: Source File
-Size: 0.61 KB
+Size: 0.79 KB
 ============================================================
 
-import { z } from 'zod';
+import { z } from "zod";
 
-export const zodUserSchema = z.object({
-        name: z.string()
-            .min(2, 'Name must be at least 2 characters long')
-            .max(50, 'Name cannot exceed 50 characters'),
-        email: z.string()
-            .email('Invalid email address')
-            .min(1, 'Email is required'),
-        password: z.string()
-            .min(6, 'Password must be at least 6 characters long')
-            .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-            .regex(/[0-9]/, 'Password must contain at least one number'),
-        role: z.enum(['member', 'admin'])    
+export const registerUserSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters long"),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters long").optional(),
+    authProvider: z.enum(["credentials", "google"]).optional(),
+    googleId: z.string().optional(),
+    avatar: z.string().optional(),
+  }).refine((data) => {
+    if (data.authProvider === "google" || data.googleId) {
+      return true;
+    }
+    return !!data.password;
+  }, {
+    message: "Password is required for credentials login",
+    path: ["password"],
+  });
+
+export const loginUserSchema = z.object({
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(1, "Password is required"),
 });
 
 ===== END FILE =====
@@ -1732,7 +1931,7 @@ export const zodUserSchema = z.object({
 ============================================================
 ===== FILE START: src/server.ts
 Type: Source File
-Size: 1.64 KB
+Size: 1.68 KB
 ============================================================
 
 // dependencies
@@ -1746,10 +1945,9 @@ import { connectDB } from "./config/connectDB";
 const PORT = process.env.PORT || 5000;
 
 import productRouter from "./routes/product.router";
-import userRoutes from "./routes/user.router";
 import categoryRouter from './routes/category.router';
 import orderRouter from './routes/order.router';
-
+import authRouter from './routes/auth.router';
 const app = express();
 
 // Middlewares
@@ -1771,10 +1969,11 @@ app.use(cors({
 
 
 // Routes
-app.use("/api/v1/users", userRoutes);
+// app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/orders", orderRouter);
+app.use("/api/v1/auth", authRouter);
 
 // Connect to MongoDB
 connectDB()
@@ -1809,72 +2008,51 @@ app.listen(PORT, () => {
 
 
 ============================================================
-===== FILE START: src/utils/multerUpload.ts
+===== FILE START: src/utils/auth.ts
 Type: Source File
-Size: 0.40 KB
+Size: 1.10 KB
 ============================================================
 
-import multer from "multer";
+import jwt, { SignOptions } from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
 
-const storage = multer.memoryStorage();
-  
-const fileFilter = (req: any, file: any, cb: any) => {
-  if (file.mimetype === 'application/pdf') {
-    cb(null, true);
-  } else {
-    cb(new Error('Only PDF files are allowed!'), false);
-  }
-};
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-export const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 100 * 1024 * 1024, 
-    files: 5 // max 5 files
-  }
-});
-
-===== END FILE =====
-
-
-
-============================================================
-===== FILE START: src/utils/setCookie.ts
-Type: Source File
-Size: 0.95 KB
-============================================================
-
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-
-const setCookie = async (req: Request, res: Response) => {
-    try {
-        const { email } = req.body; // Extract user details from request body (or use req.user if authenticated)
-
-        if (!email) {
-            res.status(400).json({ message: "User Email is required" });
-            return;
-        }
-
-        // Generate JWT token
-        const token = jwt.sign({ email }, process.env.JWT_SECRET as string, { expiresIn: "7d" });
-
-        // Set HTTP-only cookie
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production", // Only send over HTTPS in production
-            sameSite: "none", // For cross-origin requests
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
-
-    } catch (error) {
-        res.status(500).json({ message: "Internal Server Error" });
+/**
+ * Generates a standard JWT for your authenticated users
+ */
+export const generateToken = (userId: string, role: string): string => {
+  return jwt.sign(
+    { id: userId, role },
+    process.env.JWT_SECRET as string,
+    { 
+      // Casting this explicitly satisfies TypeScript's strict signature rules
+      expiresIn: (process.env.JWT_EXPIRES_IN || "7d") as SignOptions["expiresIn"] 
     }
+  );
 };
 
-export default setCookie;
-
+/**
+ * Verifies a Google ID Token sent from the frontend
+ */
+export const verifyGoogleToken = async (idToken: string) => {
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    
+    const payload = ticket.getPayload();
+    if (!payload) {
+      throw new Error("Invalid Google token payload");
+    }
+    
+    // Returns google user info: email, name, picture, sub (googleId)
+    return payload;
+  } catch (error) {
+    throw new Error("Google token verification failed");
+  }
+};
 
 ===== END FILE =====
 

@@ -6,7 +6,7 @@ import express from "express";
 dotenv.config();
 
 import { connectDB } from "./config/connectDB";
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8000;
 
 import productRouter from "./routes/product.router";
 import categoryRouter from './routes/category.router';
@@ -33,7 +33,6 @@ app.use(cors({
 
 
 // Routes
-// app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/orders", orderRouter);

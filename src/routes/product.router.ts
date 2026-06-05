@@ -7,8 +7,8 @@ import {
   getSingleProductHandler,
   updateProductHandler,
 } from "../controller/product.controller";
+import { auth } from "../middleware/auth.middleware";
 
-import verifyAdmin from "../middleware/verifyAdmin";
 
 const productRouter = express.Router();
 
@@ -36,19 +36,19 @@ productRouter.get(
  */
 productRouter.post(
   "/",
-  // verifyAdmin,
+  auth("admin"), 
   createProductHandler
 );
 
 productRouter.put(
   "/:id",
-  // verifyAdmin,
+  auth("admin"), 
   updateProductHandler
 );
 
 productRouter.delete(
   "/:id",
-  // verifyAdmin,
+  auth("admin"), 
   deleteProductHandler
 );
 

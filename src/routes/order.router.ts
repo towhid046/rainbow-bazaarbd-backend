@@ -1,31 +1,32 @@
 // src/routes/order.router.ts
 import express from "express";
-import { getAllOrdersHandler, getOrderHandler, updateOrderStatusHandler, deleteOrderHandler, getOrderSummaryHandler } from "../controller/order.controller";
-import { createOrderHandler } from "../controller/order.controller";
-import verifyAdmin from "../middleware/verifyAdmin";
+import { createOrderHandler, deleteOrderHandler, getAllOrdersHandler, getOrderHandler, getOrderSummaryHandler, updateOrderStatusHandler } from "../controller/order.controller";
+import { auth } from "../middleware/auth.middleware";
 
 const orderRouter = express.Router();
 orderRouter.get(
     "/summary",
-    // verifyAdmin,
+    auth("admin"),
     getOrderSummaryHandler
   );
 
 orderRouter.get("/", 
-    // verifyAdmin, 
+    auth("admin"), 
     getAllOrdersHandler
 );
+
 orderRouter.get("/:id", 
-    // verifyAdmin,
+    auth("admin"),
     getOrderHandler);
+
 orderRouter.put("/:id", 
-    // verifyAdmin, 
+    auth("admin"), 
     updateOrderStatusHandler
 );
+
 orderRouter.delete("/:id",
-    //  verifyAdmin,
-     
-     deleteOrderHandler);
+    auth("admin"),
+    deleteOrderHandler);
 
 // Public: anyone can create an order
 orderRouter.post("/", createOrderHandler); 

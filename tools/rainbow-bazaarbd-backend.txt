@@ -1,5 +1,5 @@
 # 📁 Combined Project Source (For LLM Use)
-Generated: 2026-05-23T13:46:07.833Z
+Generated: 2026-06-05T08:07:40.314Z
 
 =========================================
 📂 PROJECT FOLDER STRUCTURE
@@ -16,8 +16,6 @@ Generated: 2026-05-23T13:46:07.833Z
 ├── src
 │   ├── .DS_Store
 │   ├── config
-│   │   ├── backblazeB2.ts
-│   │   ├── cloudinary.ts
 │   │   └── connectDB.ts
 │   ├── controller
 │   │   ├── category.controller.ts
@@ -52,7 +50,6 @@ Generated: 2026-05-23T13:46:07.833Z
 │   ├── .DS_Store
 │   ├── combine-files.js
 │   ├── combine-selected-modules.js
-│   ├── output-rainbow-bazaar-bd-backend-combine-src-module.txt
 │   └── rainbow-bazaarbd-backend.txt
 ├── tsconfig.json
 ├── uploads
@@ -127,62 +124,6 @@ Size: 1.10 KB
     "typescript": "^5.7.3"
   }
 }
-
-===== END FILE =====
-
-
-
-============================================================
-===== FILE START: src/config/backblazeB2.ts
-Type: Config File
-Size: 0.50 KB
-============================================================
-
-// import B2 from "backblaze-b2";
-
-// const b2 = new B2({
-//   applicationKeyId: process.env.B2_KEY_ID!,
-//   applicationKey: process.env.B2_APP_KEY!, 
-// });
-
-// // Initialize and authorize
-// let authorized = false;
-
-// export const initializeB2 = async () => {
-//   if (!authorized) {
-//     await b2.authorize();
-//     authorized = true;
-//   }
-//   return b2;
-// };
-
-// export const bucketName = process.env.B2_BUCKET_NAME!;
-// export const bucketId = process.env.B2_BUCKET_ID!; // Get this from B2 dashboard
-
-===== END FILE =====
-
-
-
-============================================================
-===== FILE START: src/config/cloudinary.ts
-Type: Config File
-Size: 0.31 KB
-============================================================
-
-// config/cloudinary.ts
-import { v2 as cloudinary } from 'cloudinary';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
-  api_key:    process.env.CLOUDINARY_API_KEY!,
-  api_secret: process.env.CLOUDINARY_API_SECRET!,
-});
-
-export default cloudinary;
-
 
 ===== END FILE =====
 
@@ -294,7 +235,7 @@ export const deleteCategoryHandler = async (req: Request, res: Response): Promis
 ============================================================
 ===== FILE START: src/controller/order.controller.ts
 Type: Source File
-Size: 6.23 KB
+Size: 8.54 KB
 ============================================================
 
 // src/controller/order.controller.ts
@@ -618,6 +559,140 @@ export const deleteOrderHandler = async (
   }
 };
 
+
+// GET ORDER SUMMARY
+export const getOrderSummaryHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    // TODAY DATE RANGE
+    const today = new Date();
+
+    const startOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
+
+    const endOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      23,
+      59,
+      59,
+      999
+    );
+
+    /**
+     * TOTAL REVENUE (DELIVERED ONLY)
+     */
+    const revenueResult = await Order.aggregate([
+      {
+        $match: {
+          status: "Delivered",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: {
+            $sum: "$total",
+          },
+        },
+      },
+    ]);
+
+    const totalRevenue =
+      revenueResult[0]?.totalRevenue || 0;
+
+    /**
+     * TODAY REVENUE (DELIVERED ONLY)
+     */
+    const todayRevenueResult =
+      await Order.aggregate([
+        {
+          $match: {
+            status: "Delivered",
+            createdAt: {
+              $gte: startOfToday,
+              $lte: endOfToday,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            todayRevenue: {
+              $sum: "$total",
+            },
+          },
+        },
+      ]);
+
+    const todayRevenue =
+      todayRevenueResult[0]?.todayRevenue || 0;
+
+    /**
+     * TOTAL ORDERS
+     */
+    const totalOrders =
+      await Order.countDocuments();
+
+    /**
+     * TODAY ORDERS
+     */
+    const todayOrders =
+      await Order.countDocuments({
+        createdAt: {
+          $gte: startOfToday,
+          $lte: endOfToday,
+        },
+      });
+
+    /**
+     * TOTAL PRODUCTS
+     */
+    const totalProducts =
+      await Product.countDocuments();
+
+    /**
+     * TODAY ADDED PRODUCTS
+     */
+    const todayAddedProducts =
+      await Product.countDocuments({
+        createdAt: {
+          $gte: startOfToday,
+          $lte: endOfToday,
+        },
+      });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalRevenue,
+        todayRevenue,
+
+        totalOrders,
+        todayOrders,
+
+        totalProducts,
+        todayAddedProducts,
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 ===== END FILE =====
 
 
@@ -625,7 +700,7 @@ export const deleteOrderHandler = async (
 ============================================================
 ===== FILE START: src/controller/product.controller.ts
 Type: Source File
-Size: 5.83 KB
+Size: 6.67 KB
 ============================================================
 
 import { Request, Response } from "express";
@@ -648,7 +723,8 @@ export const getAllProductsHandler = async (
       category,
       flash,
       featured,
-      sort,
+      sort
+      ,
     } = req.query;
 
     const pageNumber = Number(page);
@@ -680,7 +756,16 @@ export const getAllProductsHandler = async (
      * CATEGORY FILTER
      */
     if (category) {
-      query.category = category; // Changed query target to category
+      const categoryIds = String(category)
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
+    
+      if (categoryIds.length === 1) {
+        query.category = categoryIds[0];
+      } else if (categoryIds.length > 1) {
+        query.category = { $in: categoryIds };
+      }
     }
 
     /**
@@ -696,28 +781,48 @@ export const getAllProductsHandler = async (
     if (featured === "true") {
       query.isFeatured = true;
     }
+    /**
+     * PRICE FILTER
+     */
+    const minPrice = req.query.minPrice
+    ? Number(req.query.minPrice)
+    : undefined;
+      
+    const maxPrice = req.query.maxPrice
+    ? Number(req.query.maxPrice)
+    : undefined;
+      
+    if (minPrice !== undefined || maxPrice !== undefined) {
+    query.price = {};
+    
+    if (minPrice !== undefined) {
+      query.price.$gte = minPrice;
+    }
+    
+    if (maxPrice !== undefined) {
+      query.price.$lte = maxPrice;
+    }
+    }
 
     /**
      * SORTING
      */
-    let sortOption: any = {
-      createdAt: -1,
-    };
+/**
+ * SORTING
+ */
+    let sortOption: any = {};
 
     if (sort === "price-asc") {
-      sortOption.price = 1;
-    }
-
-    if (sort === "price-desc") {
-      sortOption.price = -1;
-    }
-
-    if (sort === "best-selling") {
-      sortOption.soldCount = -1;
-    }
-
-    if (sort === "top-rated") {
-      sortOption.rating = -1;
+      sortOption = { price: 1 };
+    } else if (sort === "price-desc") {
+      sortOption = { price: -1 };
+    } else if (sort === "best-selling") {
+      sortOption = { soldCount: -1 };
+    } else if (sort === "top-rated") {
+      sortOption = { rating: -1 };
+    } else {
+      // Default sorting if no match or no sort parameter is provided
+      sortOption = { createdAt: -1 };
     }
 
     const total = await Product.countDocuments(query);
@@ -1369,16 +1474,21 @@ export default categoryRouter;
 ============================================================
 ===== FILE START: src/routes/order.router.ts
 Type: Source File
-Size: 0.74 KB
+Size: 0.85 KB
 ============================================================
 
 // src/routes/order.router.ts
 import express from "express";
-import { getAllOrdersHandler, getOrderHandler, updateOrderStatusHandler, deleteOrderHandler } from "../controller/order.controller";
+import { getAllOrdersHandler, getOrderHandler, updateOrderStatusHandler, deleteOrderHandler, getOrderSummaryHandler } from "../controller/order.controller";
 import { createOrderHandler } from "../controller/order.controller";
 import verifyAdmin from "../middleware/verifyAdmin";
 
 const orderRouter = express.Router();
+orderRouter.get(
+    "/summary",
+    // verifyAdmin,
+    getOrderSummaryHandler
+  );
 
 orderRouter.get("/", 
     // verifyAdmin, 
@@ -1398,6 +1508,7 @@ orderRouter.delete("/:id",
 
 // Public: anyone can create an order
 orderRouter.post("/", createOrderHandler); 
+
 
 export default orderRouter;
 
@@ -1565,27 +1676,9 @@ export const orderZodSchema = z.object({
 ============================================================
 ===== FILE START: src/schemas/Product.schema.ts
 Type: Source File
-Size: 1.15 KB
+Size: 0.57 KB
 ============================================================
 
-// import { z } from "zod";
-
-// export const productZodSchema = z.object({
-//   name: z.string().min(1),
-//   slug: z.string().min(1),
-//   description: z.string().min(1),
-//   price: z.number().positive(),
-//   oldPrice: z.number().optional(),
-//   discount: z.number().optional(),
-//   images: z.array(z.string()).min(1),
-//   stock: z.number().nonnegative(),
-//   soldCount: z.number().optional(),
-//   categoryId: z.string().min(1),
-//   rating: z.number().optional(),
-//   reviewCount: z.number().optional(),
-//   isFlash: z.boolean().optional(),
-//   isActive: z.boolean().optional(),
-// });
 
 import { z } from "zod";
 

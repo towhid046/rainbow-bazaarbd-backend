@@ -1,24 +1,26 @@
 import express from "express";
-import verifyAdmin from "../middleware/verifyAdmin";
 import {
   createCategoryHandler,
+  deleteCategoryHandler,
   getAllCategoriesHandler,
-  updateCategoryHandler,
-  deleteCategoryHandler
+  updateCategoryHandler
 } from "../controller/category.controller";
+import { auth } from "../middleware/auth.middleware";
 
 const categoryRouter = express.Router();
 
 categoryRouter.get("/", getAllCategoriesHandler); // Public
 
-// TODO: temporarily we do comment the admin verification but we will uncomment once user module finished
 
-// categoryRouter.post("/", verifyAdmin, createCategoryHandler); // Admin only
-// categoryRouter.put("/:id", verifyAdmin, updateCategoryHandler); // Admin only
-// categoryRouter.delete("/:id", verifyAdmin, deleteCategoryHandler); // Admin only
+categoryRouter.post("/", 
+  auth("admin"), 
+  createCategoryHandler); // Admin only
+categoryRouter.put("/:id",
+  auth("admin"), 
+  updateCategoryHandler); // Admin only
+categoryRouter.delete("/:id",
+  auth("admin"), 
+  deleteCategoryHandler); // Admin only
 
-categoryRouter.post("/", createCategoryHandler); 
-categoryRouter.put("/:id", updateCategoryHandler);
-categoryRouter.delete("/:id", deleteCategoryHandler);
 
 export default categoryRouter;

@@ -9,10 +9,9 @@ import { connectDB } from "./config/connectDB";
 const PORT = process.env.PORT || 5000;
 
 import productRouter from "./routes/product.router";
-import userRoutes from "./routes/user.router";
 import categoryRouter from './routes/category.router';
 import orderRouter from './routes/order.router';
-
+import authRouter from './routes/auth.router';
 const app = express();
 
 // Middlewares
@@ -34,10 +33,11 @@ app.use(cors({
 
 
 // Routes
-app.use("/api/v1/users", userRoutes);
+// app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/orders", orderRouter);
+app.use("/api/v1/auth", authRouter);
 
 // Connect to MongoDB
 connectDB()

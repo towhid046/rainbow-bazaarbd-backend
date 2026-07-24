@@ -214,3 +214,40 @@ export const getMe = async (req: AuthenticatedRequest, res: Response): Promise<v
       res.status(500).json({ success: false, message: error.message || "Server Error" });
     }
 };
+
+export const updateProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: "Not authorized" });
+      return;
+    }
+
+    const { name, avatar } = req.body;
+    
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      res.status(404).json({ success: false, message: "User not found" });
+      return;
+    }
+
+    if (name) user.name = name;
+    if (avatar !== undefined) user.avatar = avatar;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        authProvider: user.authProvider,
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || "Server Error" });
+  }
+};

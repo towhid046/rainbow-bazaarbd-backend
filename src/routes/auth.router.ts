@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getMe, googleLogin, login, logout, register } from "../controller/auth.controller";
+import { getMe, googleLogin, login, logout, register, updateProfile } from "../controller/auth.controller";
 import { auth } from "../middleware/auth.middleware";
 import hashPassword from "../middleware/hashPassword";
 
@@ -11,5 +11,6 @@ router.post("/google", googleLogin);
 router.post("/logout", logout);
 
 router.get("/me", auth('user','admin'), getMe);
+router.put("/update-profile", auth('user','admin'), updateProfile);
 
 export default router;
